@@ -103,6 +103,57 @@ async def test_questions_and_options_bilingual(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_question_multi_version_coexistence_and_duplicate_rejection(db_session: AsyncSession):
+    """Test that two versions of the same question code can coexist, while exact duplicate is rejected."""
+    from sqlalchemy.exc import IntegrityError
+
+    q_code = f"Q_VER_TEST_{int(datetime.now().timestamp())}"
+
+    # 1. Version 1 of question
+    q_v1 = Question(
+        question_code=q_code,
+        dimension_code="digital_presence",
+        question_text_en="Do you have a website? (v1)",
+        question_text_hi="क्या आपकी कोई वेबसाइट है? (v1)",
+        question_type="single_choice",
+        version=1,
+    )
+    db_session.add(q_v1)
+    await db_session.flush()
+    assert q_v1.id is not None
+
+    # 2. Version 2 of same question code (should succeed and coexist)
+    q_v2 = Question(
+        question_code=q_code,
+        dimension_code="digital_presence",
+        question_text_en="Do you have a website or Google Maps profile? (v2 updated)",
+        question_text_hi="क्या आपकी कोई वेबसाइट या गूगल मैप्स प्रोफ़ाइल है? (v2)",
+        question_type="single_choice",
+        version=2,
+    )
+    db_session.add(q_v2)
+    await db_session.flush()
+    assert q_v2.id is not None
+    assert q_v2.question_code == q_v1.question_code
+    assert q_v2.version != q_v1.version
+
+    # 3. Duplicate (same code AND same version=1) should be rejected by uq_question_code_version
+    q_v1_duplicate = Question(
+        question_code=q_code,
+        dimension_code="digital_presence",
+        question_text_en="Duplicate v1 question",
+        question_text_hi="डुप्लिकेट v1 प्रश्न",
+        question_type="single_choice",
+        version=1,
+    )
+    db_session.add(q_v1_duplicate)
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
+
+    await db_session.rollback()
+
+
+@pytest.mark.asyncio
 async def test_historical_assessments_and_scoring(db_session: AsyncSession):
     """Test append-only historical assessments linked via previous_assessment_id."""
     cat_res = await db_session.execute(select(BusinessCategory).limit(1))

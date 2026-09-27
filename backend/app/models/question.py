@@ -14,9 +14,12 @@ class Question(Base, TimestampMixin):
     """Bilingual assessment questionnaire item."""
 
     __tablename__ = "questions"
+    __table_args__ = (
+        UniqueConstraint("question_code", "version", name="uq_question_code_version"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
-    question_code: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
+    question_code: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
     dimension_code: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     question_text_en: Mapped[str] = mapped_column(Text, nullable=False)
     question_text_hi: Mapped[str] = mapped_column(Text, nullable=False)
