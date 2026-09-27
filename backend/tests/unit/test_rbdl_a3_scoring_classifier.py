@@ -341,3 +341,136 @@ def test_na_vs_category_exemption_strict_distinction():
     assert res_services_exempt.rbdl_level == 2
     assert len(res_services_exempt.category_exemptions) > 0
     assert any("Services/Consulting" in ex for ex in res_services_exempt.category_exemptions)
+
+
+def test_c3_methodology_level_1_and_boundaries():
+    """Verify C3 Level 1 gating: infra >= 4.0 AND literacy >= 3.0, with exact 3.9 boundary."""
+    # 1. Eligible: infra = 4.0, literacy = 3.0 -> Level 1
+    scoring_l1_pass = AssessmentScoringSummary(
+        dimension_scores={"infra": 4.0, "literacy": 3.0, "presence": 0.0, "comms": 0.0, "records": 0.0, "payments": 0.0, "inventory": 0.0, "data_usage": 0.0, "growth": 0.0},
+        detailed_scores={}, composite_score=1.5, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l1_pass = RBDLClassifierEngine.classify(scoring_l1_pass, {}, {}, {"category_id": 1})
+    assert res_l1_pass.rbdl_level == 1
+
+    # 2. Boundary fail: infra = 3.9, literacy = 3.0 -> Level 0
+    scoring_l1_fail_infra = AssessmentScoringSummary(
+        dimension_scores={"infra": 3.9, "literacy": 3.0, "presence": 0.0, "comms": 0.0, "records": 0.0, "payments": 0.0, "inventory": 0.0, "data_usage": 0.0, "growth": 0.0},
+        detailed_scores={}, composite_score=1.4, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l1_fail_infra = RBDLClassifierEngine.classify(scoring_l1_fail_infra, {}, {}, {"category_id": 1})
+    assert res_l1_fail_infra.rbdl_level == 0
+    assert any(r.dimension_code == "infra" for r in res_l1_fail_infra.blocking_requirements)
+
+    # 3. Boundary fail: infra = 4.0, literacy = 2.9 -> Level 0
+    scoring_l1_fail_lit = AssessmentScoringSummary(
+        dimension_scores={"infra": 4.0, "literacy": 2.9, "presence": 0.0, "comms": 0.0, "records": 0.0, "payments": 0.0, "inventory": 0.0, "data_usage": 0.0, "growth": 0.0},
+        detailed_scores={}, composite_score=1.4, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l1_fail_lit = RBDLClassifierEngine.classify(scoring_l1_fail_lit, {}, {}, {"category_id": 1})
+    assert res_l1_fail_lit.rbdl_level == 0
+    assert any(r.dimension_code == "literacy" for r in res_l1_fail_lit.blocking_requirements)
+
+
+def test_c3_methodology_level_2_or_and_inventory_boundaries():
+    """Verify C3 Level 2 gating: presence >= 4.0, comms >= 3.0, (records >= 4.0 OR payments >= 4.0), and inventory >= 3.0."""
+    # Base Level 1 passing scores
+    base = {"infra": 5.0, "literacy": 4.0, "presence": 4.0, "comms": 3.0, "records": 4.0, "payments": 0.0, "inventory": 3.0, "data_usage": 0.0, "growth": 0.0}
+
+    # 1. Level 2 eligible with records >= 4.0 and payments < 4.0
+    scoring_l2_rec = AssessmentScoringSummary(
+        dimension_scores=base, detailed_scores={}, composite_score=3.5, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l2_rec = RBDLClassifierEngine.classify(scoring_l2_rec, {}, {}, {"category_id": 1})
+    assert res_l2_rec.rbdl_level == 2
+
+    # 2. Level 2 eligible with records < 4.0 and payments >= 4.0 (OR condition)
+    base_or = {**base, "records": 2.0, "payments": 4.0}
+    scoring_l2_pay = AssessmentScoringSummary(
+        dimension_scores=base_or, detailed_scores={}, composite_score=3.5, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l2_pay = RBDLClassifierEngine.classify(scoring_l2_pay, {}, {}, {"category_id": 1})
+    assert res_l2_pay.rbdl_level == 2
+
+    # 3. Level 2 blocked by inventory boundary: inventory = 2.9 (applicable category)
+    base_inv_fail = {**base, "inventory": 2.9}
+    scoring_l2_inv = AssessmentScoringSummary(
+        dimension_scores=base_inv_fail, detailed_scores={}, composite_score=3.4, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l2_inv = RBDLClassifierEngine.classify(scoring_l2_inv, {}, {}, {"category_id": 1})
+    assert res_l2_inv.rbdl_level == 1
+    assert any("inventory" in r.dimension_code for r in res_l2_inv.blocking_requirements)
+
+    # 4. Level 2 inventory = 2.9 with structurally exempt category -> achieves Level 2
+    res_l2_exempt = RBDLClassifierEngine.classify(scoring_l2_inv, {}, {}, {"category_id": 3, "category_name": "Services & Consulting"})
+    assert res_l2_exempt.rbdl_level == 2
+
+
+def test_c3_methodology_level_3_and_boundaries():
+    """Verify C3 Level 3 gating: Level 2 satisfied AND payments >= 6.0 AND records >= 6.0 AND data_usage >= 5.0 AND growth >= 4.0."""
+    # Base Level 2 passed + Level 3 met
+    scores_l3 = {
+        "infra": 7.0, "literacy": 6.0, "presence": 6.0, "comms": 5.0,
+        "records": 6.0, "payments": 6.0, "inventory": 4.0,
+        "data_usage": 5.0, "growth": 4.0,
+    }
+    scoring_l3 = AssessmentScoringSummary(
+        dimension_scores=scores_l3, detailed_scores={}, composite_score=6.0, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_l3 = RBDLClassifierEngine.classify(scoring_l3, {}, {}, {"category_id": 1})
+    assert res_l3.rbdl_level == 3
+    assert len(res_l3.blocking_requirements) == 0
+
+    # Boundary test: data_usage = 4.9 (< 5.0) -> Level 3 blocked, achieves Level 2
+    scores_l3_data_fail = {**scores_l3, "data_usage": 4.9}
+    scoring_data_fail = AssessmentScoringSummary(
+        dimension_scores=scores_l3_data_fail, detailed_scores={}, composite_score=5.9, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_data_fail = RBDLClassifierEngine.classify(scoring_data_fail, {}, {}, {"category_id": 1})
+    assert res_data_fail.rbdl_level == 2
+    assert any(r.dimension_code == "data_usage" for r in res_data_fail.blocking_requirements)
+
+
+def test_c3_synthetic_scenario_example_a():
+    """Test C3 Synthetic Example A:
+    infra: 6, literacy: 5, presence: 3, comms: 6, records: 2, payments: 7, inventory: N/A (exempt), data_usage: 1, growth: 2.
+    Expected: Level 1 (presence = 3 < 4 blocks Level 2).
+    """
+    scores_a = {
+        "infra": 6.0, "literacy": 5.0, "presence": 3.0, "comms": 6.0,
+        "records": 2.0, "payments": 7.0, "inventory": 0.0,
+        "data_usage": 1.0, "growth": 2.0,
+    }
+    scoring_a = AssessmentScoringSummary(
+        dimension_scores=scores_a, detailed_scores={}, composite_score=4.0, total_answered=13, total_na=1, total_missing=0, is_complete=True,
+    )
+    res_a = RBDLClassifierEngine.classify(
+        scoring_a, {}, {}, {"category_id": 3, "category_name": "Services & Consulting", "is_inventory_exempt": True}
+    )
+    assert res_a.rbdl_level == 1
+    # Presence is the blocking requirement for Level 2
+    assert any(r.dimension_code == "presence" for r in res_a.blocking_requirements)
+
+
+def test_c3_synthetic_scenario_example_b():
+    """Test C3 Synthetic Example B:
+    infra: 8, literacy: 7, presence: 6, comms: 5, records: 7, payments: 8, inventory: 4, data_usage: 3, growth: 3.
+    Expected: Level 2 (data_usage = 3 < 5 and growth = 3 < 4 block Level 3).
+    """
+    scores_b = {
+        "infra": 8.0, "literacy": 7.0, "presence": 6.0, "comms": 5.0,
+        "records": 7.0, "payments": 8.0, "inventory": 4.0,
+        "data_usage": 3.0, "growth": 3.0,
+    }
+    scoring_b = AssessmentScoringSummary(
+        dimension_scores=scores_b, detailed_scores={}, composite_score=6.0, total_answered=14, total_na=0, total_missing=0, is_complete=True,
+    )
+    res_b = RBDLClassifierEngine.classify(
+        scoring_b, {}, {}, {"category_id": 1, "category_name": "Retail & Trade"}
+    )
+    assert res_b.rbdl_level == 2
+    # Blockers for Level 3 are data_usage and growth
+    blocker_dims = {r.dimension_code for r in res_b.blocking_requirements}
+    assert "data_usage" in blocker_dims
+    assert "growth" in blocker_dims
+
