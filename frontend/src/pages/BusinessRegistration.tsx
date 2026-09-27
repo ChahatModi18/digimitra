@@ -1,23 +1,31 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
   Sparkles,
   MapPin,
-  Tag,
-  RotateCcw,
-  FileText,
+  Compass,
+  PlusCircle,
+  Store,
 } from "lucide-react";
-import { createBusiness, CreateBusinessPayload } from "../api/businesses";
+import { fetchBusinesses, createBusiness, CreateBusinessPayload } from "../api/businesses";
 import { Business } from "../types";
+import { useAuth } from "../context/AuthContext";
+import { LoadingState, ErrorAlert } from "../components/UIState";
 
 export const BusinessRegistration: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { activeBusinessId, setActiveBusinessId } = useAuth();
+
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<CreateBusinessPayload>({
     name: "",
-    sector: "Retail",
+    sector: "Retail & Trade",
     enterprise_size: "Micro",
     state: "Maharashtra",
     city: "Mumbai",
@@ -26,360 +34,364 @@ export const BusinessRegistration: React.FC = () => {
     primary_language: "en",
   });
 
-  const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [createdBusiness, setCreatedBusiness] = useState<Business | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
+  // Fetch registered businesses
+  const {
+    data: businesses = [],
+    isLoading,
+  } = useQuery<Business[]>({
+    queryKey: ["businesses"],
+    queryFn: fetchBusinesses,
+  });
 
-    if (!formData.name.trim()) {
-      setErrorMessage("Business name is required.");
-      return;
+  // Auto-set active business if not set
+  React.useEffect(() => {
+    if (businesses.length > 0 && !activeBusinessId) {
+      setActiveBusinessId(businesses[0].id);
     }
-    if (!formData.state.trim() || !formData.city.trim()) {
-      setErrorMessage("State and City are required fields.");
-      return;
-    }
+  }, [businesses, activeBusinessId, setActiveBusinessId]);
 
-    setLoading(true);
-    try {
-      const result = await createBusiness(formData);
-      setCreatedBusiness(result);
-    } catch (err: any) {
+  // Create Business Mutation
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateBusinessPayload) => createBusiness(payload),
+    onSuccess: (newBiz) => {
+      queryClient.invalidateQueries({ queryKey: ["businesses"] });
+      setActiveBusinessId(newBiz.id);
+      setShowForm(false);
+      setFormData({
+        name: "",
+        sector: "Retail & Trade",
+        enterprise_size: "Micro",
+        state: "Maharashtra",
+        city: "Mumbai",
+        pincode: "400001",
+        description: "",
+        primary_language: "en",
+      });
+    },
+    onError: (err: any) => {
       const msg =
         err?.message ||
         (Array.isArray(err?.details)
           ? err.details.map((d: any) => `${d.loc?.join(".")}: ${d.msg}`).join(", ")
-          : "Failed to register business. Please verify all fields.");
+          : "Failed to register enterprise. Please check all fields.");
       setErrorMessage(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  const handleReset = () => {
-    setCreatedBusiness(null);
-    setFormData({
-      name: "",
-      sector: "Retail",
-      enterprise_size: "Micro",
-      state: "Maharashtra",
-      city: "Mumbai",
-      pincode: "400001",
-      description: "",
-      primary_language: "en",
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     setErrorMessage(null);
+    if (!formData.name.trim()) {
+      setErrorMessage("Enterprise name is required.");
+      return;
+    }
+    createMutation.mutate(formData);
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="flex items-center gap-4 p-6 rounded-3xl glass-panel border border-slate-800 shadow-xl">
-        <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner">
-          <Building2 className="h-7 w-7" />
+    <div className="max-w-5xl mx-auto py-6 space-y-8 animate-fadeIn">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 border border-slate-800 shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner">
+            <Building2 className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading tracking-tight">
+              {t("business.title")}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              {t("business.subtitle")}
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white font-heading tracking-tight">
-            MSME Business Registration
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Step 1 of the DigiMitra Digital Consultant Framework — Stored in real-time MySQL database
-          </p>
-        </div>
+
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/30 transition shrink-0"
+        >
+          <PlusCircle className="w-4 h-4" />
+          <span>{showForm ? "View Registered Enterprises" : "Register New Enterprise"}</span>
+        </button>
       </div>
 
-      {/* Success View */}
-      {createdBusiness ? (
-        <div className="rounded-3xl glass-panel p-8 border border-emerald-500/30 shadow-2xl space-y-6 animate-fadeIn">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-white font-heading">
-                  Enterprise Registered Successfully!
-                </h2>
-                <p className="text-xs text-emerald-400">
-                  Persisted to MySQL Database with ID #{createdBusiness.id}
-                </p>
-              </div>
-            </div>
-            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-              {createdBusiness.enterprise_size} Enterprise
-            </span>
+      {errorMessage && <ErrorAlert message={errorMessage} />}
+
+      {/* Registration Form (Collapsible or if no businesses exist) */}
+      {(showForm || (!isLoading && businesses.length === 0)) && (
+        <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-6">
+          <div className="flex items-center gap-2 pb-4 border-b border-slate-800">
+            <Store className="w-5 h-5 text-teal-400" />
+            <h2 className="text-lg font-bold text-white font-heading">
+              {t("business.form_title")}
+            </h2>
           </div>
 
-          {/* Details Card */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-sm">
-            <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider block">Business Name</span>
-              <span className="font-semibold text-white text-base mt-0.5 block">{createdBusiness.name}</span>
-            </div>
-
-            <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider block">Sector</span>
-              <span className="font-medium text-indigo-300 flex items-center gap-1.5 mt-0.5">
-                <Tag className="h-3.5 w-3.5" />
-                {createdBusiness.sector}
-              </span>
-            </div>
-
-            <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider block">Location</span>
-              <span className="text-slate-200 flex items-center gap-1.5 mt-0.5">
-                <MapPin className="h-3.5 w-3.5 text-slate-400" />
-                {createdBusiness.city}, {createdBusiness.state} {createdBusiness.pincode ? `(${createdBusiness.pincode})` : ""}
-              </span>
-            </div>
-
-            <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider block">Registration Time</span>
-              <span className="text-slate-300 text-xs mt-0.5 block">
-                {new Date(createdBusiness.created_at).toLocaleString()}
-              </span>
-            </div>
-
-            {createdBusiness.description && (
-              <div className="sm:col-span-2 pt-2 border-t border-slate-800/60">
-                <span className="text-xs text-slate-400 uppercase tracking-wider block">Operational Summary</span>
-                <p className="text-slate-300 text-xs mt-1 leading-relaxed">{createdBusiness.description}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Action CTAs */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition-colors"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>Register Another Business</span>
-            </button>
-
-            <Link
-              to="/assessment"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm text-white shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02]"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>Proceed to Digital Assessment</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      ) : (
-        /* Registration Form */
-        <div className="rounded-3xl glass-panel p-8 border border-slate-800 shadow-2xl space-y-6">
-          {errorMessage && (
-            <div
-              data-testid="error-banner"
-              className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm flex items-start gap-3"
-            >
-              <AlertTriangle className="h-5 w-5 text-rose-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold">Registration Failed</p>
-                <p className="text-xs text-rose-400 mt-0.5">{errorMessage}</p>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5 text-sm">
-            {/* Enterprise Name */}
-            <div>
-              <label
-                htmlFor="business-name-input"
-                className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-              >
-                Enterprise Name <span className="text-rose-400">*</span>
-              </label>
-              <input
-                id="business-name-input"
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g. Ramesh Hardware & Electricals"
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
-              />
-            </div>
-
-            {/* Sector & Enterprise Size */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="sector-select"
-                  className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-                >
-                  Sector / Industry <span className="text-rose-400">*</span>
-                </label>
-                <select
-                  id="sector-select"
-                  name="sector"
-                  value={formData.sector}
-                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 transition-all"
-                >
-                  <option value="Retail">Retail & General Store</option>
-                  <option value="Manufacturing">Manufacturing & Fabrication</option>
-                  <option value="Services">Services, Repair & Maintenance</option>
-                  <option value="Food & Beverage">Food, Restaurant & Beverage</option>
-                  <option value="Handicrafts">Handicrafts, Apparel & Textiles</option>
-                  <option value="Wholesale">Wholesale & Distribution</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="enterprise-size-select"
-                  className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-                >
-                  MSME Category (MSMED Act) <span className="text-rose-400">*</span>
-                </label>
-                <select
-                  id="enterprise-size-select"
-                  name="enterprise_size"
-                  value={formData.enterprise_size}
-                  onChange={(e) =>
-                    setFormData({ ...formData, enterprise_size: e.target.value as any })
-                  }
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 transition-all"
-                >
-                  <option value="Micro">Micro (Inv &lt; ₹1 Cr, Turnover &lt; ₹5 Cr)</option>
-                  <option value="Small">Small (Inv &lt; ₹10 Cr, Turnover &lt; ₹50 Cr)</option>
-                  <option value="Medium">Medium (Inv &lt; ₹50 Cr, Turnover &lt; ₹250 Cr)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* State, City, Pincode */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label
-                  htmlFor="state-input"
-                  className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-                >
-                  State <span className="text-rose-400">*</span>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Business Name */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.name")} *
                 </label>
                 <input
-                  id="state-input"
-                  name="state"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Ramesh Kirana & General Store"
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              {/* Sector / Category */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.sector")} *
+                </label>
+                <select
+                  value={formData.sector}
+                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                >
+                  <option value="Retail & Trade">Retail & Trade (किराना / व्यापार)</option>
+                  <option value="Manufacturing">Manufacturing & Production (उत्पादन)</option>
+                  <option value="Services & Consulting">Services & Consulting (सेवाएं / परामर्श)</option>
+                  <option value="Food & Hospitality">Food & Hospitality (होटल / खान-पान)</option>
+                  <option value="Handloom & Handicrafts">Handloom & Handicrafts (हथकरघा / हस्तशिल्प)</option>
+                  <option value="Healthcare & Wellness">Healthcare & Wellness (स्वास्थ्य सेवाएं)</option>
+                </select>
+              </div>
+
+              {/* Enterprise Size */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.size")} *
+                </label>
+                <select
+                  value={formData.enterprise_size}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      enterprise_size: e.target.value as "Micro" | "Small" | "Medium",
+                    })
+                  }
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                >
+                  <option value="Micro">Micro Enterprise (&lt; ₹1 Cr Turnover, &lt; ₹25 Lakh Inv)</option>
+                  <option value="Small">Small Enterprise (&lt; ₹10 Cr Turnover)</option>
+                  <option value="Medium">Medium Enterprise (&lt; ₹50 Cr Turnover)</option>
+                </select>
+              </div>
+
+              {/* State */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.state")} *
+                </label>
+                <input
                   type="text"
                   required
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  placeholder="e.g. Maharashtra"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  placeholder="e.g. Uttar Pradesh, Maharashtra"
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
 
+              {/* City */}
               <div>
-                <label
-                  htmlFor="city-input"
-                  className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-                >
-                  City / Town <span className="text-rose-400">*</span>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.city")} *
                 </label>
                 <input
-                  id="city-input"
-                  name="city"
                   type="text"
                   required
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="e.g. Mumbai"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  placeholder="e.g. Lucknow, Pune"
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
 
+              {/* PIN Code */}
               <div>
-                <label
-                  htmlFor="pincode-input"
-                  className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-                >
-                  PIN Code
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.pincode")}
                 </label>
                 <input
-                  id="pincode-input"
-                  name="pincode"
                   type="text"
-                  maxLength={6}
-                  value={formData.pincode}
+                  value={formData.pincode || ""}
                   onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                  placeholder="e.g. 400001"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 transition-all"
+                  placeholder="e.g. 226001"
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              {/* Preferred Language */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.language")}
+                </label>
+                <select
+                  value={formData.primary_language}
+                  onChange={(e) => setFormData({ ...formData, primary_language: e.target.value })}
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                >
+                  <option value="en">English</option>
+                  <option value="hi">हिन्दी (Hindi)</option>
+                </select>
+              </div>
+
+              {/* Description */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  {t("business.description")}
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.description || ""}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Briefly describe your products or services..."
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
             </div>
 
-            {/* Description / Operations */}
-            <div>
-              <label
-                htmlFor="description-input"
-                className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-              >
-                Brief Description of Current Operations
-              </label>
-              <textarea
-                id="description-input"
-                name="description"
-                rows={3}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe what you sell, your primary customers, and current payment or accounting methods..."
-                className="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all text-xs"
-              />
-            </div>
-
-            {/* Language Preference */}
-            <div>
-              <label
-                htmlFor="language-select"
-                className="block text-xs font-semibold text-slate-300 mb-1.5 uppercase tracking-wider"
-              >
-                Primary Consultation Language
-              </label>
-              <select
-                id="language-select"
-                name="primary_language"
-                value={formData.primary_language}
-                onChange={(e) => setFormData({ ...formData, primary_language: e.target.value })}
-                className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white focus:outline-none focus:border-indigo-500 text-xs"
-              >
-                <option value="en">English (Default)</option>
-                <option value="hi">हिन्दी (Hindi)</option>
-              </select>
-            </div>
-
-            {/* Submit Button */}
-            <div className="pt-3">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              {businesses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+              )}
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50 hover:scale-[1.01]"
+                disabled={createMutation.isPending}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 transition disabled:opacity-50"
               >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    Persisting to MySQL Database...
-                  </span>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4" />
-                    <span>Register Enterprise in DigiMitra</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
+                {createMutation.isPending ? "Registering..." : t("business.submit")}
               </button>
             </div>
           </form>
         </div>
       )}
+
+      {/* Registered Enterprises Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-indigo-400" />
+            <h2 className="text-lg font-bold text-white font-heading">
+              {t("business.list_title")} ({businesses.length})
+            </h2>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <LoadingState message="Loading your registered enterprises..." />
+        ) : businesses.length === 0 ? (
+          <div className="p-8 rounded-3xl bg-slate-900/40 border border-slate-800 text-center space-y-3">
+            <Store className="w-10 h-10 text-slate-500 mx-auto" />
+            <p className="text-sm text-slate-400 max-w-md mx-auto">
+              {t("business.no_businesses")}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {businesses.map((biz) => {
+              const isActive = activeBusinessId === biz.id;
+              return (
+                <div
+                  key={biz.id}
+                  className={`p-6 rounded-3xl border transition-all duration-300 flex flex-col justify-between space-y-4 ${
+                    isActive
+                      ? "bg-slate-900 border-indigo-500/50 shadow-xl ring-1 ring-indigo-500/30"
+                      : "bg-slate-900/70 border-slate-800 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-indigo-400 font-bold">
+                            #{biz.id}
+                          </span>
+                          <h3 className="text-lg font-bold text-white">{biz.name}</h3>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span>
+                            {biz.city}, {biz.state} {biz.pincode ? `(${biz.pincode})` : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isActive ? (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0">
+                          <CheckCircle2 className="w-3 h-3" />
+                          {t("business.active_badge")}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setActiveBusinessId(biz.id)}
+                          className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0"
+                        >
+                          {t("business.select_active")}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-950/60 text-indigo-300 border border-indigo-500/20">
+                        {biz.sector || "Retail"}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                        {biz.enterprise_size} Enterprise
+                      </span>
+                    </div>
+
+                    {biz.description && (
+                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                        {biz.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-3 border-t border-slate-800/80">
+                    <button
+                      onClick={() => {
+                        setActiveBusinessId(biz.id);
+                        navigate("/assessment");
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition flex items-center justify-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Take Assessment</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveBusinessId(biz.id);
+                        navigate("/roadmap");
+                      }}
+                      className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center justify-center gap-1.5"
+                    >
+                      <Compass className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>View Roadmap</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -17,15 +17,34 @@ export interface TokenResponseData {
 }
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+    }
+  } catch (e) {
+    // ignore in environments without localStorage
+  }
+  return null;
 }
 
 export function setStoredToken(token: string): void {
-  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    }
+  } catch (e) {
+    // ignore
+  }
 }
 
 export function clearStoredToken(): void {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
+  } catch (e) {
+    // ignore
+  }
 }
 
 export async function loginUser(email: string, password: string): Promise<TokenResponseData> {

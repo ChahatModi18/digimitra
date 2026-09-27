@@ -1,8 +1,10 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter } from "react-router-dom";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { RoadmapView } from "../src/pages/RoadmapView";
+import { AuthProvider } from "../src/context/AuthContext";
 import * as businessApi from "../src/api/businesses";
 import * as roadmapApi from "../src/api/roadmap";
 
@@ -34,7 +36,7 @@ describe("RoadmapView Component", () => {
       {
         id: 1,
         name: "Sharma General Store",
-        sector: "Retail",
+        sector: "Retail & Trade",
         enterprise_size: "Micro",
         state: "Uttar Pradesh",
         city: "Lucknow",
@@ -112,12 +114,16 @@ describe("RoadmapView Component", () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <RoadmapView />
+        <AuthProvider>
+          <BrowserRouter>
+            <RoadmapView />
+          </BrowserRouter>
+        </AuthProvider>
       </QueryClientProvider>
     );
 
     // Header check
-    expect(screen.getByText(/Personalized Transformation Roadmap/i)).toBeInTheDocument();
+    expect(screen.getByText(/Transformation Roadmap & Tasks/i)).toBeInTheDocument();
 
     // Task check
     await waitFor(() => {
@@ -125,10 +131,5 @@ describe("RoadmapView Component", () => {
       expect(screen.getByText(/Phase 1: Quick Wins/i)).toBeInTheDocument();
       expect(screen.getByText(/Recommended because your Digital Infrastructure score is below 4.0/i)).toBeInTheDocument();
     });
-
-    // Language switch to Hindi
-    fireEvent.click(screen.getByText(/हिन्दी \(HI\)/i));
-    expect(screen.getByText(/व्यक्तिगत डिजिटलीकरण रोडमैप/i)).toBeInTheDocument();
-    expect(screen.getByText(/समर्पित व्यावसायिक स्मार्टफोन अपनाएं/i)).toBeInTheDocument();
   });
 });

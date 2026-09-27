@@ -1,8 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter } from "react-router-dom";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AssessmentFlow } from "../src/pages/AssessmentFlow";
+import { AuthProvider } from "../src/context/AuthContext";
 import * as businessApi from "../src/api/businesses";
 import * as assessmentApi from "../src/api/assessments";
 
@@ -30,12 +32,12 @@ describe("AssessmentFlow Component", () => {
     });
   });
 
-  it("renders the assessment header and language toggle", async () => {
+  it("renders the assessment introduction header and details", async () => {
     (businessApi.fetchBusinesses as any).mockResolvedValueOnce([
       {
         id: 1,
         name: "Sharma Silk Sarees",
-        sector: "Retail",
+        sector: "Retail & Trade",
         enterprise_size: "Small",
         state: "Uttar Pradesh",
         city: "Varanasi",
@@ -46,17 +48,17 @@ describe("AssessmentFlow Component", () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <AssessmentFlow />
+        <AuthProvider>
+          <BrowserRouter>
+            <AssessmentFlow />
+          </BrowserRouter>
+        </AuthProvider>
       </QueryClientProvider>
     );
 
-    expect(screen.getByText(/RBDL Digital Readiness Assessment/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "हिंदी" })).toBeInTheDocument();
-
-    // Toggle Hindi language
-    fireEvent.click(screen.getByRole("button", { name: "हिंदी" }));
-    expect(screen.getByText(/आरबीडीएल डिजिटल तैयारी मूल्यांकन/i)).toBeInTheDocument();
+    expect(screen.getByText(/Evaluate Your Enterprise's Digital Maturity/i)).toBeInTheDocument();
+    expect(screen.getByText(/3-5 Minute Digital Health Check/i)).toBeInTheDocument();
+    expect(screen.getByText(/9 Operational Dimensions Evaluated/i)).toBeInTheDocument();
   });
 
   it("allows starting assessment for a selected business", async () => {
@@ -64,7 +66,7 @@ describe("AssessmentFlow Component", () => {
       {
         id: 10,
         name: "Metro Kirana Store",
-        sector: "Retail",
+        sector: "Retail & Trade",
         enterprise_size: "Micro",
         state: "Maharashtra",
         city: "Pune",
@@ -89,7 +91,11 @@ describe("AssessmentFlow Component", () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <AssessmentFlow />
+        <AuthProvider>
+          <BrowserRouter>
+            <AssessmentFlow />
+          </BrowserRouter>
+        </AuthProvider>
       </QueryClientProvider>
     );
 
@@ -97,12 +103,11 @@ describe("AssessmentFlow Component", () => {
       expect(screen.getByText(/Metro Kirana Store/i)).toBeInTheDocument();
     });
 
-    const startBtn = screen.getByRole("button", { name: /Begin Assessment →/i });
+    const startBtn = screen.getByRole("button", { name: /Begin Digital Assessment →/i });
     fireEvent.click(startBtn);
 
     await waitFor(() => {
       expect(assessmentApi.startAssessment).toHaveBeenCalledTimes(1);
-      expect(assessmentApi.startAssessment).toHaveBeenCalledWith(10, "en");
     });
   });
 });

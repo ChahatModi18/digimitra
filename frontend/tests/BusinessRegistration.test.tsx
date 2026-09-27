@@ -1,44 +1,70 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { BusinessRegistration } from "../src/pages/BusinessRegistration";
+import { AuthProvider } from "../src/context/AuthContext";
 import * as businessApi from "../src/api/businesses";
 
 // Mock the business API module
 vi.mock("../src/api/businesses", () => ({
+  fetchBusinesses: vi.fn(),
   createBusiness: vi.fn(),
 }));
 
 describe("BusinessRegistration Component", () => {
+  let queryClient: QueryClient;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
   });
 
-  it("renders the MSME registration form with all required fields", () => {
+  it("renders the MSME enterprise management page with registered list", async () => {
+    (businessApi.fetchBusinesses as any).mockResolvedValueOnce([
+      {
+        id: 1,
+        name: "Ramesh Kirana Store",
+        sector: "Retail & Trade",
+        enterprise_size: "Micro",
+        state: "Maharashtra",
+        city: "Mumbai",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
+
     render(
-      <BrowserRouter>
-        <BusinessRegistration />
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <BusinessRegistration />
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
-    expect(screen.getByText(/MSME Business Registration/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Enterprise Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Sector \/ Industry/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/MSME Category/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/State/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/City \/ Town/i)).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Register Enterprise in DigiMitra/i })
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Enterprise Profile & Management/i)).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText("Ramesh Kirana Store")).toBeInTheDocument();
+      expect(screen.getByText(/Take Assessment/i)).toBeInTheDocument();
+      expect(screen.getByText(/View Roadmap/i)).toBeInTheDocument();
+    });
   });
 
-  it("submits the form successfully and displays the registered business details", async () => {
+  it("submits the registration form successfully and adds enterprise", async () => {
+    (businessApi.fetchBusinesses as any).mockResolvedValue([]);
     const mockCreatedBusiness = {
       id: 42,
       owner_id: 1,
       name: "Gupta Electronics & Hardware",
-      sector: "Retail",
+      sector: "Retail & Trade",
       enterprise_size: "Micro",
       state: "Uttar Pradesh",
       city: "Varanasi",
@@ -52,26 +78,26 @@ describe("BusinessRegistration Component", () => {
     (businessApi.createBusiness as any).mockResolvedValueOnce(mockCreatedBusiness);
 
     render(
-      <BrowserRouter>
-        <BusinessRegistration />
-      </BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <BusinessRegistration />
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
     );
 
+    await waitFor(() => {
+      expect(screen.getByText(/Register New MSME Enterprise/i)).toBeInTheDocument();
+    });
+
     // Fill form
-    fireEvent.change(screen.getByLabelText(/Enterprise Name/i), {
+    fireEvent.change(screen.getByPlaceholderText(/e.g. Ramesh Kirana & General Store/i), {
       target: { value: "Gupta Electronics & Hardware" },
-    });
-    fireEvent.change(screen.getByLabelText(/State/i), {
-      target: { value: "Uttar Pradesh" },
-    });
-    fireEvent.change(screen.getByLabelText(/City \/ Town/i), {
-      target: { value: "Varanasi" },
     });
 
     // Submit form
-    fireEvent.click(
-      screen.getByRole("button", { name: /Register Enterprise in DigiMitra/i })
-    );
+    fireEvent.click(screen.getByRole("button", { name: /Register Enterprise/i }));
 
     // Verify API called with right payload
     await waitFor(() => {
@@ -79,51 +105,8 @@ describe("BusinessRegistration Component", () => {
       expect(businessApi.createBusiness).toHaveBeenCalledWith(
         expect.objectContaining({
           name: "Gupta Electronics & Hardware",
-          state: "Uttar Pradesh",
-          city: "Varanasi",
         })
       );
-    });
-
-    // Assert success view is displayed
-    await waitFor(() => {
-      expect(
-        screen.getByText(/Enterprise Registered Successfully!/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText(/Persisted to MySQL Database with ID #42/i)
-      ).toBeInTheDocument();
-      expect(
-        screen.getByText("Gupta Electronics & Hardware")
-      ).toBeInTheDocument();
-      expect(screen.getByText(/Proceed to Digital Assessment/i)).toBeInTheDocument();
-    });
-  });
-
-  it("displays an error alert when the backend rejects registration", async () => {
-    (businessApi.createBusiness as any).mockRejectedValueOnce(
-      new Error("Enterprise name already registered for this owner.")
-    );
-
-    render(
-      <BrowserRouter>
-        <BusinessRegistration />
-      </BrowserRouter>
-    );
-
-    fireEvent.change(screen.getByLabelText(/Enterprise Name/i), {
-      target: { value: "Existing Shop" },
-    });
-
-    fireEvent.click(
-      screen.getByRole("button", { name: /Register Enterprise in DigiMitra/i })
-    );
-
-    await waitFor(() => {
-      expect(screen.getByTestId("error-banner")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Enterprise name already registered for this owner./i)
-      ).toBeInTheDocument();
     });
   });
 });

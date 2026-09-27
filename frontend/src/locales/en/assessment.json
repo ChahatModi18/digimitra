@@ -1,8 +1,46 @@
 {
   "title": "Digital Readiness Maturity Levels",
   "subtitle": "DigiMitra classifies businesses into 4 structured stages (RBDL Levels 0–3):",
+  "intro": {
+    "badge": "3-5 Minute Digital Health Check",
+    "title": "Evaluate Your Enterprise's Digital Maturity",
+    "desc": "Answer 14 simple, everyday questions about your business operations. No technical expertise required. Your answers will generate a tailored digital maturity score and an actionable roadmap.",
+    "bullet_1_title": "9 Operational Dimensions",
+    "bullet_1_desc": "Evaluates digital connectivity, basic literacy, online discovery, customer communications, records, payments, inventory, data analytics, and digital marketplaces.",
+    "bullet_2_title": "Confidential & Practical",
+    "bullet_2_desc": "Your responses are strictly confidential and used solely to calculate your RBDL level and personalized roadmap.",
+    "bullet_3_title": "Flexible & Industry-Aware",
+    "bullet_3_desc": "Questions not applicable to your business (such as physical inventory for service firms) can be easily marked N/A without penalty.",
+    "cta_start": "Begin Digital Assessment →",
+    "select_business": "Select Enterprise to Assess"
+  },
+  "questionnaire": {
+    "progress": "Assessment Progress",
+    "questions_answered": "questions recorded",
+    "mark_na": "Mark N/A (Not Applicable)",
+    "marked_na": "✓ Marked as N/A",
+    "save_draft": "Save Draft",
+    "submit": "Submit Assessment →",
+    "saving": "Saving draft...",
+    "evaluating": "Analyzing & Classifying..."
+  },
+  "results": {
+    "badge": "RBDL Classification Outcome",
+    "composite_score": "Weighted Composite Score",
+    "certainty": "Certainty Tier",
+    "evaluation_method": "Deterministic Rule-Based Engine",
+    "dimension_scores_title": "Dimension Scores (0–10 Scale)",
+    "evidence_trail_title": "Requirement Gating & Evidence Trail",
+    "satisfied_capabilities": "Satisfied Digital Capabilities",
+    "blocking_requirements": "Requirements Needed for Next Level Advancement",
+    "category_exemptions": "Category Exemptions Applied",
+    "contradictions": "Response Inconsistencies Flagged",
+    "cta_recommendations": "View Personalized Recommendations",
+    "cta_roadmap": "Explore Transformation Roadmap →",
+    "reassess": "← Re-assess Another Enterprise"
+  },
   "level_0": {
-    "name": "Level 0: Non-Digital / Traditional",
+    "name": "Level 0: Foundational Readiness",
     "desc": "Manual paper records, cash-only transactions, no active digital footprint."
   },
   "level_1": {
@@ -14,7 +52,7 @@
     "desc": "Digital billing & bookkeeping (Tally/Vyapar), inventory tracking, social commerce."
   },
   "level_3": {
-    "name": "Level 3: Integrated Digital Enterprise",
-    "desc": "Automated workflows, integrated ERP/CRM, multi-channel sales and data analytics."
+    "name": "Level 3: Growth-Oriented Enterprise",
+    "desc": "Automated workflows, integrated accounting/POS, multi-channel sales and data analytics."
   }
 }
