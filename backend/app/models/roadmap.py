@@ -12,6 +12,7 @@ from sqlalchemy import (
     Integer,
     SmallInteger,
     String,
+    Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
@@ -82,6 +83,8 @@ class RoadmapTask(Base, TimestampMixin):
     )
     title_en: Mapped[str] = mapped_column(String(255), nullable=False)
     title_hi: Mapped[str] = mapped_column(String(255), nullable=False)
+    description_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description_hi: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     phase_number: Mapped[int] = mapped_column(SmallInteger, default=1, nullable=False)
     sequence_order: Mapped[int] = mapped_column(SmallInteger, default=0, nullable=False)
     status: Mapped[str] = mapped_column(
@@ -89,6 +92,7 @@ class RoadmapTask(Base, TimestampMixin):
         default="pending",
         nullable=False,
     )
+    skip_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     due_date_estimate: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
     # Relationships
@@ -101,3 +105,4 @@ class RoadmapTask(Base, TimestampMixin):
 
 # Alias for backwards compatibility if referenced elsewhere
 RoadmapItem = RoadmapTask
+

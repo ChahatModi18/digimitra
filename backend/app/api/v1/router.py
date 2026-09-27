@@ -5,10 +5,10 @@ from app.api.v1.endpoints.health import router as health_router
 from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.businesses import router as businesses_router
 from app.api.v1.endpoints.assessments import router as assessments_router
+from app.api.v1.endpoints.recommendations import router as recommendations_router
+from app.api.v1.endpoints.roadmap import router as roadmap_router
 from app.api.v1.endpoints.domain_routers import (
     classification_router,
-    recommendations_router,
-    roadmap_router,
     progress_router,
     reports_router,
     admin_rules_router,
@@ -27,3 +27,4 @@ api_v1_router.include_router(roadmap_router)
 api_v1_router.include_router(progress_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(admin_rules_router)
+

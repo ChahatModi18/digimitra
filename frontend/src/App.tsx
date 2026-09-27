@@ -6,7 +6,7 @@ import { Footer } from "./components/Footer";
 import { Dashboard } from "./pages/Dashboard";
 import { BusinessRegistration } from "./pages/BusinessRegistration";
 import { AssessmentFlow } from "./pages/AssessmentFlow";
-import { RoadmapPlaceholder } from "./pages/RoadmapPlaceholder";
+import { RoadmapView } from "./pages/RoadmapView";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +28,7 @@ export const App: React.FC = () => {
               <Route path="/" element={<Dashboard />} />
               <Route path="/register" element={<BusinessRegistration />} />
               <Route path="/assessment" element={<AssessmentFlow />} />
-              <Route path="/roadmap" element={<RoadmapPlaceholder />} />
+              <Route path="/roadmap" element={<RoadmapView />} />
             </Routes>
           </main>
           <Footer />

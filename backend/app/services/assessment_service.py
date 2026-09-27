@@ -520,6 +520,16 @@ class AssessmentService:
         await db.commit()
         await db.refresh(cr_record)
 
+        # 9. Auto-generate Recommendations & Phased Roadmap (Claude C4)
+        try:
+            from app.services.recommendation_service import RecommendationService
+            await RecommendationService.generate_recommendations_and_roadmap(
+                db=db,
+                assessment_id=assessment_id,
+            )
+        except Exception as e:
+            logger.warning(f"Auto-generation of recommendations/roadmap encountered: {e}")
+
         logger.info(
             f"Successfully classified Assessment ID {assessment_id} -> RBDL Level {cr_record.rbdl_level} (Certainty: {classification_dto.certainty.certainty_tier.value})"
         )

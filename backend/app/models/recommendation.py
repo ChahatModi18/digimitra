@@ -1,7 +1,8 @@
 """Recommendation Catalog and Business Recommendation ORM Models (C2 Entity 2.11 & 2.15)."""
 
 from datetime import datetime, timezone
-from typing import Optional, List, TYPE_CHECKING
+from decimal import Decimal
+from typing import Any, Dict, Optional, List, TYPE_CHECKING
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -9,6 +10,8 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    JSON,
+    Numeric,
     SmallInteger,
     String,
     Text,
@@ -45,6 +48,7 @@ class Recommendation(Base, TimestampMixin):
         SmallInteger, ForeignKey("rbdl_levels.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     category: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    dimension_code: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     estimated_cost_level: Mapped[str] = mapped_column(
         Enum("low", "medium", "high", name="cost_level_enum"),
         default="low",
@@ -55,6 +59,14 @@ class Recommendation(Base, TimestampMixin):
         default="low",
         nullable=False,
     )
+    impact_level: Mapped[str] = mapped_column(
+        Enum("low", "medium", "high", name="impact_level_enum"),
+        default="medium",
+        nullable=False,
+    )
+    prerequisite_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    reason_template_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reason_template_hi: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     default_priority: Mapped[int] = mapped_column(SmallInteger, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -102,6 +114,14 @@ class BusinessRecommendation(Base):
         Integer, ForeignKey("recommendations.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     rank_order: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    priority_score: Mapped[Optional[Decimal]] = mapped_column(Numeric(5, 2), nullable=True)
+    impact_score: Mapped[Optional[Decimal]] = mapped_column(Numeric(4, 2), nullable=True)
+    feasibility_score: Mapped[Optional[Decimal]] = mapped_column(Numeric(4, 2), nullable=True)
+    cost_score: Mapped[Optional[Decimal]] = mapped_column(Numeric(4, 2), nullable=True)
+    readiness_score: Mapped[Optional[Decimal]] = mapped_column(Numeric(4, 2), nullable=True)
+    reason_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reason_hi: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    evidence_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(
         Enum("suggested", "accepted", "dismissed", name="business_rec_status_enum"),
         default="suggested",

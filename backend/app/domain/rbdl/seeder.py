@@ -9,6 +9,7 @@ from app.models.question import Question, QuestionOption
 from app.models.rule import Rule
 from app.domain.rbdl.question_bank_v1 import QUESTIONS_V1, QUESTION_BANK_VERSION
 from app.domain.rbdl.rules_v1 import RULES_V1, RULESET_VERSION
+from app.domain.recommendations.seeder import seed_recommendations_v1
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,13 @@ async def seed_rules_v1(db: AsyncSession) -> int:
 
 
 async def seed_all_a3_data(db: AsyncSession) -> Dict[str, int]:
-    """Seed both Question Bank v1 and Rules v1."""
+    """Seed Question Bank v1, Rules v1, and Recommendations v1."""
     q_count = await seed_question_bank_v1(db)
     r_count = await seed_rules_v1(db)
-    return {"questions_seeded": q_count, "rules_seeded": r_count}
+    rec_count = await seed_recommendations_v1(db)
+    return {
+        "questions_seeded": q_count,
+        "rules_seeded": r_count,
+        "recommendations_seeded": rec_count,
+    }
+
