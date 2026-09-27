@@ -137,27 +137,27 @@ export const BusinessRegistration: React.FC = () => {
 
       {/* 2. Active Business Highlight Card */}
       {activeBiz && !showForm && (
-        <Card variant="gradient-indigo" className="p-6 sm:p-8 space-y-4">
+        <Card variant="gradient-orange" className="p-6 sm:p-8 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Badge variant="success" size="sm" dot>
                   {currentLang === "hi" ? "सक्रिय उद्यम (Active)" : "Active Enterprise"}
                 </Badge>
-                <span className="text-xs text-indigo-300 font-mono">ID #{activeBiz.id}</span>
+                <span className="text-xs text-orange-700 font-mono font-bold">ID #{activeBiz.id}</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
                 {activeBiz.name}
               </h2>
-              <div className="flex items-center gap-2 text-xs text-slate-300">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+              <div className="flex items-center gap-2 text-xs text-stone-600">
+                <MapPin className="w-3.5 h-3.5 text-orange-600" />
                 <span>
                   {activeBiz.city}, {activeBiz.state}{" "}
                   {activeBiz.pincode ? `(${activeBiz.pincode})` : ""}
                 </span>
-                <span className="text-slate-500">•</span>
+                <span className="text-stone-300">•</span>
                 <span>{activeBiz.sector}</span>
-                <span className="text-slate-500">•</span>
+                <span className="text-stone-300">•</span>
                 <span>{activeBiz.enterprise_size}</span>
               </div>
             </div>
@@ -175,7 +175,7 @@ export const BusinessRegistration: React.FC = () => {
                 variant="secondary"
                 size="md"
                 onClick={() => navigate("/roadmap")}
-                leftIcon={<Compass className="w-4 h-4 text-indigo-400" />}
+                leftIcon={<Compass className="w-4 h-4 text-orange-600" />}
               >
                 {currentLang === "hi" ? "रोडमैप देखें" : "View Roadmap"}
               </Button>
@@ -187,9 +187,9 @@ export const BusinessRegistration: React.FC = () => {
       {/* 3. Registration Form */}
       {(showForm || (!isLoading && businesses.length === 0)) && (
         <Card variant="default" className="p-6 sm:p-8 space-y-6">
-          <div className="flex items-center gap-2 pb-4 border-b border-slate-800">
-            <Store className="w-5 h-5 text-teal-400" />
-            <h3 className="text-lg font-bold text-white font-heading">
+          <div className="flex items-center gap-2 pb-4 border-b border-stone-200">
+            <Store className="w-5 h-5 text-orange-600" />
+            <h3 className="text-lg font-bold text-stone-900 font-heading">
               {t("business.form_title")}
             </h3>
           </div>
@@ -277,7 +277,7 @@ export const BusinessRegistration: React.FC = () => {
 
               {/* Description */}
               <div className="md:col-span-2 space-y-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700">
                   {t("business.description")}
                 </label>
                 <textarea
@@ -285,12 +285,12 @@ export const BusinessRegistration: React.FC = () => {
                   value={formData.description || ""}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Briefly describe your products or services..."
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition"
+                  className="w-full bg-white text-stone-900 text-sm rounded-xl px-4 py-2.5 border border-stone-200 hover:border-stone-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition shadow-xs"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-200">
               {businesses.length > 0 && (
                 <Button variant="ghost" size="md" onClick={() => setShowForm(false)}>
                   Cancel
@@ -335,20 +335,20 @@ export const BusinessRegistration: React.FC = () => {
               return (
                 <Card
                   key={biz.id}
-                  variant={isActive ? "gradient-indigo" : "default"}
+                  variant={isActive ? "gradient-orange" : "default"}
                   className="p-6 space-y-5 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-indigo-400 font-bold">
+                          <span className="text-xs font-mono text-orange-600 font-bold">
                             #{biz.id}
                           </span>
-                          <h3 className="text-lg font-bold text-white">{biz.name}</h3>
+                          <h3 className="text-lg font-bold text-stone-900">{biz.name}</h3>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-xs text-stone-500 mt-1">
+                          <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                           <span>
                             {biz.city}, {biz.state}{" "}
                             {biz.pincode ? `(${biz.pincode})` : ""}
@@ -363,7 +363,7 @@ export const BusinessRegistration: React.FC = () => {
                       ) : (
                         <button
                           onClick={() => setActiveBusinessId(biz.id)}
-                          className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+                          className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition"
                         >
                           {t("business.select_active")}
                         </button>
@@ -371,22 +371,22 @@ export const BusinessRegistration: React.FC = () => {
                     </div>
 
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-950/60 text-indigo-300 border border-indigo-500/20">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
                         {biz.sector || "Retail"}
                       </span>
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-stone-100 text-stone-700 border border-stone-200">
                         {biz.enterprise_size} Enterprise
                       </span>
                     </div>
 
                     {biz.description && (
-                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
                         {biz.description}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 pt-3 border-t border-slate-800/80">
+                  <div className="flex items-center gap-3 pt-3 border-t border-stone-100">
                     <Button
                       variant="primary"
                       size="sm"
@@ -407,7 +407,7 @@ export const BusinessRegistration: React.FC = () => {
                         setActiveBusinessId(biz.id);
                         navigate("/roadmap");
                       }}
-                      leftIcon={<Compass className="w-3.5 h-3.5 text-indigo-400" />}
+                      leftIcon={<Compass className="w-3.5 h-3.5 text-orange-600" />}
                       className="flex-1"
                     >
                       {currentLang === "hi" ? "रोडमैप देखें" : "View Roadmap"}

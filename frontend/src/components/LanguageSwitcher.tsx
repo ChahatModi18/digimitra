@@ -12,15 +12,15 @@ export const LanguageSwitcher: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-slate-800/80 p-1 border border-slate-700/60 text-xs">
-      <Globe className="h-3.5 w-3.5 text-slate-400 ml-1.5 mr-0.5" />
+    <div className="flex items-center gap-1 rounded-xl bg-stone-100 p-1 border border-stone-200/80 text-xs">
+      <Globe className="h-3.5 w-3.5 text-stone-500 ml-1.5 mr-0.5" />
       <button
         type="button"
         onClick={() => toggleLanguage("en")}
-        className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+        className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
           currentLang === "en"
-            ? "bg-indigo-600 text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-200"
+            ? "bg-white text-orange-600 shadow-xs border border-stone-200/60 font-bold"
+            : "text-stone-600 hover:text-stone-900"
         }`}
       >
         English
@@ -28,10 +28,10 @@ export const LanguageSwitcher: React.FC = () => {
       <button
         type="button"
         onClick={() => toggleLanguage("hi")}
-        className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+        className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
           currentLang === "hi"
-            ? "bg-indigo-600 text-white shadow-sm"
-            : "text-slate-400 hover:text-slate-200"
+            ? "bg-white text-orange-600 shadow-xs border border-stone-200/60 font-bold"
+            : "text-stone-600 hover:text-stone-900"
         }`}
       >
         हिन्दी

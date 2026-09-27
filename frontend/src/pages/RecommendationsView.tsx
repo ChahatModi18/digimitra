@@ -64,7 +64,7 @@ export const RecommendationsView: React.FC = () => {
   ) as string[];
 
   const filterTabs = [
-    { id: "all", label: currentLang === "hi" ? "सभी अनुशंसाएं" : "All Dimensions", count: recommendations.length },
+    { id: "all", label: currentLang === "hi" ? "सभी आयाम" : "All Dimensions", count: recommendations.length },
     ...uniqueDimensions.map((dim) => ({
       id: dim,
       label: dim.replace("_", " ").toUpperCase(),
@@ -76,8 +76,8 @@ export const RecommendationsView: React.FC = () => {
     <div className="max-w-5xl mx-auto py-6 space-y-8 animate-fadeIn pb-16">
       {/* 1. Standard Page Header */}
       <PageHeader
-        icon={<Sparkles className="w-8 h-8" />}
-        badge={<Badge variant="brand" size="sm">Rule-Based Recommendations</Badge>}
+        icon={<Sparkles className="w-8 h-8 text-orange-600" />}
+        badge={<Badge variant="brand" size="sm">Deterministic Recommendations</Badge>}
         title={currentLang === "hi" ? "व्यक्तिगत डिजिटल अनुशंसाएं" : "Personalized Recommendations"}
         subtitle={
           currentLang === "hi"
@@ -87,11 +87,11 @@ export const RecommendationsView: React.FC = () => {
         actions={
           businesses.length > 0 && (
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-slate-400" />
+              <Building2 className="w-4 h-4 text-stone-500" />
               <select
                 value={activeBusinessId || ""}
                 onChange={(e) => setActiveBusinessId(Number(e.target.value))}
-                className="bg-slate-900 text-white text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                className="bg-white text-stone-900 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold shadow-xs"
               >
                 {businesses.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -111,7 +111,7 @@ export const RecommendationsView: React.FC = () => {
         />
       ) : recError || !recData || recommendations.length === 0 ? (
         <EmptyState
-          icon={<Sparkles className="w-8 h-8" />}
+          icon={<Sparkles className="w-8 h-8 text-orange-600" />}
           title="No Recommendations Available"
           description="Complete a digital assessment for this enterprise to generate customized, prioritized digital transformation recommendations."
           actionLabel="Start Digital Assessment →"
@@ -125,7 +125,7 @@ export const RecommendationsView: React.FC = () => {
               label="Current RBDL Level"
               value={`Level ${recData.current_rbdl_level}`}
               subtitle={`Targeting Level ${recData.target_rbdl_level} Capability`}
-              icon={<Zap className="w-4 h-4 text-indigo-400" />}
+              icon={<Zap className="w-4 h-4 text-orange-600" />}
               variant="brand"
             />
 
@@ -133,7 +133,7 @@ export const RecommendationsView: React.FC = () => {
               label="Recommended Milestones"
               value={`${recommendations.length} Actions`}
               subtitle="Gated by 1-level-up prerequisite rules"
-              icon={<Sparkles className="w-4 h-4 text-emerald-400" />}
+              icon={<Sparkles className="w-4 h-4 text-emerald-600" />}
               variant="emerald"
             />
 
@@ -141,7 +141,7 @@ export const RecommendationsView: React.FC = () => {
               label="Roadmap Execution"
               value="Phased Plan"
               subtitle="Quick Wins → Core Steps → Long Term"
-              icon={<Compass className="w-4 h-4 text-amber-400" />}
+              icon={<Compass className="w-4 h-4 text-amber-600" />}
               variant="amber"
             />
           </div>
@@ -164,10 +164,11 @@ export const RecommendationsView: React.FC = () => {
             subtitle="Sorted strictly by algorithmic priority score based on impact, effort, and cost."
             action={
               <Button
-                variant="outline"
+                variant="primary"
                 size="sm"
                 onClick={() => navigate("/roadmap")}
                 rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                className="shadow-orange-glow"
               >
                 View Phased Roadmap
               </Button>
@@ -191,7 +192,7 @@ export const RecommendationsView: React.FC = () => {
                   costLevel={rec.estimated_cost_level}
                   currentLang={currentLang}
                   onAction={() => navigate("/roadmap")}
-                  actionLabel={currentLang === "hi" ? "रोडमैप में देखें" : "View in Roadmap"}
+                  actionLabel={currentLang === "hi" ? "रोडमैप में देखें →" : "View in Roadmap →"}
                 />
               ))}
             </div>

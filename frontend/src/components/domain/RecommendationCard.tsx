@@ -45,24 +45,24 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   const reason = currentLang === "hi" ? reasonHi : reasonEn;
 
   const levelBadges: Record<string, { color: string; labelEn: string; labelHi: string }> = {
-    low: { color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", labelEn: "Low", labelHi: "कम" },
-    medium: { color: "bg-amber-500/10 text-amber-400 border-amber-500/20", labelEn: "Medium", labelHi: "मध्यम" },
-    high: { color: "bg-rose-500/10 text-rose-400 border-rose-500/20", labelEn: "High", labelHi: "उच्च" },
+    low: { color: "bg-emerald-50 text-emerald-700 border-emerald-200", labelEn: "Low", labelHi: "कम" },
+    medium: { color: "bg-amber-50 text-amber-700 border-amber-200", labelEn: "Medium", labelHi: "मध्यम" },
+    high: { color: "bg-rose-50 text-rose-700 border-rose-200", labelEn: "High", labelHi: "उच्च" },
   };
 
   return (
     <div
-      className={`p-6 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl backdrop-blur-md flex flex-col justify-between space-y-5 transition-all duration-300 hover:border-indigo-500/40 hover:-translate-y-1 ${className}`}
+      className={`p-6 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between space-y-5 transition-all duration-300 hover:border-orange-300 hover:shadow-card-hover hover:-translate-y-1 ${className}`}
     >
       <div className="space-y-3">
         {/* Top bar: Code, Priority, Dimension */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase font-extrabold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+            <span className="text-[10px] font-mono uppercase font-extrabold px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">
               {code}
             </span>
             {dimensionCode && (
-              <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+              <span className="text-[10px] uppercase font-bold text-stone-600 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">
                 {dimensionCode}
               </span>
             )}
@@ -77,18 +77,18 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
 
         {/* Title & description */}
         <div className="space-y-1.5">
-          <h4 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
+          <h4 className="text-base sm:text-lg font-bold text-stone-900 tracking-tight leading-snug">
             {title}
           </h4>
           {description && (
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">{description}</p>
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">{description}</p>
           )}
         </div>
 
         {/* Rationale / Why recommended */}
         {reason && (
-          <div className="p-3 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs text-indigo-300/90 leading-relaxed">
-            <span className="font-semibold text-indigo-400 block mb-0.5">
+          <div className="p-3.5 rounded-xl bg-orange-50/60 border border-orange-100 text-xs text-stone-700 leading-relaxed">
+            <span className="font-bold text-orange-800 block mb-0.5">
               {currentLang === "hi" ? "यह क्यों महत्वपूर्ण है:" : "Why Recommended:"}
             </span>
             {reason}
@@ -97,35 +97,35 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
       </div>
 
       {/* Meta tags & Action */}
-      <div className="pt-4 border-t border-slate-800/80 space-y-4">
+      <div className="pt-4 border-t border-stone-100 space-y-4">
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="p-2 rounded-xl bg-slate-950/40 border border-slate-800">
-            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+          <div className="p-2 rounded-xl bg-stone-50 border border-stone-200/80">
+            <span className="text-[9px] uppercase font-bold text-stone-500 block">
               {currentLang === "hi" ? "प्रभाव" : "Impact"}
             </span>
-            <span className={`text-xs font-bold ${levelBadges[impactLevel.toLowerCase()]?.color || ""}`}>
+            <span className={`text-xs font-bold inline-block px-1.5 py-0.5 rounded mt-0.5 border ${levelBadges[impactLevel.toLowerCase()]?.color || ""}`}>
               {currentLang === "hi"
                 ? levelBadges[impactLevel.toLowerCase()]?.labelHi || impactLevel
                 : levelBadges[impactLevel.toLowerCase()]?.labelEn || impactLevel}
             </span>
           </div>
 
-          <div className="p-2 rounded-xl bg-slate-950/40 border border-slate-800">
-            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+          <div className="p-2 rounded-xl bg-stone-50 border border-stone-200/80">
+            <span className="text-[9px] uppercase font-bold text-stone-500 block">
               {currentLang === "hi" ? "प्रयास" : "Effort"}
             </span>
-            <span className={`text-xs font-bold ${levelBadges[effortLevel.toLowerCase()]?.color || ""}`}>
+            <span className={`text-xs font-bold inline-block px-1.5 py-0.5 rounded mt-0.5 border ${levelBadges[effortLevel.toLowerCase()]?.color || ""}`}>
               {currentLang === "hi"
                 ? levelBadges[effortLevel.toLowerCase()]?.labelHi || effortLevel
                 : levelBadges[effortLevel.toLowerCase()]?.labelEn || effortLevel}
             </span>
           </div>
 
-          <div className="p-2 rounded-xl bg-slate-950/40 border border-slate-800">
-            <span className="text-[9px] uppercase font-bold text-slate-500 block">
+          <div className="p-2 rounded-xl bg-stone-50 border border-stone-200/80">
+            <span className="text-[9px] uppercase font-bold text-stone-500 block">
               {currentLang === "hi" ? "लागत" : "Cost"}
             </span>
-            <span className={`text-xs font-bold ${levelBadges[costLevel.toLowerCase()]?.color || ""}`}>
+            <span className={`text-xs font-bold inline-block px-1.5 py-0.5 rounded mt-0.5 border ${levelBadges[costLevel.toLowerCase()]?.color || ""}`}>
               {currentLang === "hi"
                 ? levelBadges[costLevel.toLowerCase()]?.labelHi || costLevel
                 : levelBadges[costLevel.toLowerCase()]?.labelEn || costLevel}

@@ -23,17 +23,17 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
 }) => {
   return (
     <div
-      className={`p-5 rounded-3xl bg-slate-900/80 border border-slate-800 shadow-xl backdrop-blur-md space-y-3.5 transition-all duration-200 hover:border-slate-700 ${className}`}
+      className={`p-5 rounded-2xl bg-white border border-stone-200 shadow-sm space-y-3.5 transition-all duration-200 hover:border-orange-300 ${className}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+          <span className="p-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-200">
             <FileCode className="w-4 h-4" />
           </span>
-          <span className="text-sm font-bold text-white tracking-tight">
+          <span className="text-sm font-bold text-stone-900 tracking-tight">
             {ruleCode || "RULE-CLASSIFY"}
           </span>
-          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+          <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-stone-100 text-stone-600 border border-stone-200">
             v{ruleVersion}
           </span>
         </div>
@@ -43,27 +43,27 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
         </Badge>
       </div>
 
-      {ruleName && <p className="text-xs font-semibold text-slate-300">{ruleName}</p>}
+      {ruleName && <p className="text-xs font-semibold text-stone-700">{ruleName}</p>}
 
       {/* Conditions & Matched Trace */}
       <div className="space-y-2 text-xs">
         {conditionJson && Object.keys(conditionJson).length > 0 && (
-          <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 font-mono text-[11px]">
-            <span className="text-indigo-400 font-semibold block mb-1">
+          <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 font-mono text-[11px]">
+            <span className="text-orange-700 font-bold block mb-1">
               Evaluated Criteria:
             </span>
-            <pre className="text-slate-300 overflow-x-auto no-scrollbar whitespace-pre-wrap">
+            <pre className="text-stone-800 overflow-x-auto no-scrollbar whitespace-pre-wrap">
               {JSON.stringify(conditionJson, null, 2)}
             </pre>
           </div>
         )}
 
         {matchedAnswersJson && Object.keys(matchedAnswersJson).length > 0 && (
-          <div className="p-3 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 font-mono text-[11px]">
-            <span className="text-emerald-400 font-semibold block mb-1">
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 font-mono text-[11px]">
+            <span className="text-emerald-800 font-bold block mb-1">
               Satisfied Answers:
             </span>
-            <pre className="text-emerald-200/90 overflow-x-auto no-scrollbar whitespace-pre-wrap">
+            <pre className="text-emerald-900 overflow-x-auto no-scrollbar whitespace-pre-wrap">
               {JSON.stringify(matchedAnswersJson, null, 2)}
             </pre>
           </div>

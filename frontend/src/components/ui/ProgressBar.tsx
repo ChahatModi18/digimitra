@@ -30,21 +30,21 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   };
 
   const variantStyles = {
-    brand: "bg-indigo-500",
-    emerald: "bg-emerald-500",
+    brand: "bg-orange-600",
+    emerald: "bg-emerald-600",
     amber: "bg-amber-500",
     rose: "bg-rose-500",
-    purple: "bg-purple-500",
-    gradient: "bg-gradient-to-r from-indigo-500 via-teal-400 to-emerald-400",
+    purple: "bg-purple-600",
+    gradient: "bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500",
   };
 
   return (
     <div className={`space-y-1.5 w-full ${className}`}>
       {(label || showValue) && (
         <div className="flex items-center justify-between text-xs font-semibold">
-          {label && <span className="text-slate-300">{label}</span>}
+          {label && <span className="text-stone-700">{label}</span>}
           {showValue && (
-            <span className="text-slate-400 font-mono">
+            <span className="text-stone-500 font-mono">
               {typeof value === "number" ? Math.round(value) : value}
               {valueSuffix}
             </span>
@@ -52,10 +52,10 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         </div>
       )}
       <div
-        className={`w-full bg-slate-800/90 rounded-full overflow-hidden border border-slate-700/50 p-0.5 ${sizeStyles[size]}`}
+        className={`w-full bg-stone-100 rounded-full overflow-hidden border border-stone-200 p-0.5 ${sizeStyles[size]}`}
       >
         <div
-          className={`h-full rounded-full transition-all duration-500 ease-out shadow-sm ${variantStyles[variant]}`}
+          className={`h-full rounded-full transition-all duration-500 ease-out shadow-xs ${variantStyles[variant]}`}
           style={{ width: `${percentage}%` }}
         />
       </div>

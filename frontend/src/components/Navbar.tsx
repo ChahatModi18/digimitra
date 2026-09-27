@@ -31,21 +31,21 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-stone-200/80 bg-white/95 backdrop-blur-md shadow-xs">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo & Name */}
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold font-heading text-white tracking-tight">DigiMitra</span>
-              <span className="text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-1.5 py-0.5 rounded-md">
+              <span className="text-xl font-bold font-heading text-stone-900 tracking-tight">DigiMitra</span>
+              <span className="text-[10px] uppercase font-bold bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">
                 RBDL v1.0
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden sm:block">AI Digital Consultant for Indian MSMEs</p>
+            <p className="text-[10px] text-stone-500 hidden sm:block">AI Digital Consultant for Indian MSMEs</p>
           </div>
         </Link>
 
@@ -58,10 +58,10 @@ export const Navbar: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors ${
                   isActive
-                    ? "bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                    ? "bg-orange-50 text-orange-600 font-bold border border-orange-200/80 shadow-xs"
+                    : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -78,10 +78,10 @@ export const Navbar: React.FC = () => {
           {/* User Account / Login Button */}
           <Link
             to="/auth"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition border ${
               user
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20"
-                : "bg-indigo-600 hover:bg-indigo-500 text-white border-transparent shadow-md shadow-indigo-600/20"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 font-bold shadow-xs"
+                : "bg-orange-600 hover:bg-orange-500 text-white border-transparent shadow-md shadow-orange-600/20"
             }`}
           >
             <User className="h-3.5 w-3.5" />
@@ -93,7 +93,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition"
+            className="lg:hidden p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 border border-stone-200 transition"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -102,7 +102,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-950 border-b border-slate-800 p-4 space-y-2 animate-fadeIn">
+        <div className="lg:hidden bg-white border-b border-stone-200 p-4 space-y-1.5 shadow-xl animate-fadeIn">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -111,10 +111,10 @@ export const Navbar: React.FC = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition ${
                   isActive
-                    ? "bg-indigo-600 text-white shadow-md"
-                    : "text-slate-300 hover:bg-slate-900"
+                    ? "bg-orange-50 text-orange-600 border border-orange-200 font-bold"
+                    : "text-stone-700 hover:bg-stone-100"
                 }`}
               >
                 <Icon className="h-4 w-4" />

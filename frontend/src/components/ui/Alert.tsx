@@ -18,24 +18,28 @@ export const Alert: React.FC<AlertProps> = ({
 }) => {
   const styles = {
     info: {
-      container: "bg-indigo-950/40 border-indigo-500/30 text-indigo-200",
-      icon: <Info className="w-5 h-5 text-indigo-400 shrink-0" />,
-      title: "text-indigo-200 font-bold",
+      container: "bg-orange-50 border-orange-200 text-orange-950",
+      icon: <Info className="w-5 h-5 text-orange-600 shrink-0" />,
+      title: "text-orange-900 font-bold",
+      body: "text-orange-800",
     },
     success: {
-      container: "bg-emerald-950/40 border-emerald-500/30 text-emerald-200",
-      icon: <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />,
-      title: "text-emerald-200 font-bold",
+      container: "bg-emerald-50 border-emerald-200 text-emerald-950",
+      icon: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />,
+      title: "text-emerald-900 font-bold",
+      body: "text-emerald-800",
     },
     warning: {
-      container: "bg-amber-950/40 border-amber-500/30 text-amber-200",
-      icon: <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />,
-      title: "text-amber-200 font-bold",
+      container: "bg-amber-50 border-amber-200 text-amber-950",
+      icon: <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />,
+      title: "text-amber-900 font-bold",
+      body: "text-amber-800",
     },
     error: {
-      container: "bg-rose-950/40 border-rose-500/30 text-rose-200",
-      icon: <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />,
-      title: "text-rose-200 font-bold",
+      container: "bg-rose-50 border-rose-200 text-rose-950",
+      icon: <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />,
+      title: "text-rose-900 font-bold",
+      body: "text-rose-800",
     },
   };
 
@@ -43,17 +47,17 @@ export const Alert: React.FC<AlertProps> = ({
 
   return (
     <div
-      className={`p-4 rounded-2xl border backdrop-blur-md flex items-start gap-3 shadow-lg ${current.container} ${className}`}
+      className={`p-4 rounded-2xl border flex items-start gap-3 shadow-xs ${current.container} ${className}`}
     >
       <div className="mt-0.5">{current.icon}</div>
       <div className="flex-1 text-xs sm:text-sm leading-relaxed">
         {title && <h5 className={`mb-1 ${current.title}`}>{title}</h5>}
-        <div className="text-slate-300">{children}</div>
+        <div className={current.body}>{children}</div>
       </div>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-slate-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+          className="text-stone-400 hover:text-stone-700 transition-colors p-1 rounded-lg hover:bg-black/5"
         >
           <X className="w-4 h-4" />
         </button>

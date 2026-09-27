@@ -23,17 +23,17 @@ export const StatCard: React.FC<StatCardProps> = ({
   className = "",
 }) => {
   const iconRingStyles = {
-    brand: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
-    emerald: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-    amber: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-    rose: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
-    slate: "bg-slate-800/80 text-slate-300 border border-slate-700",
+    brand: "bg-orange-50 text-orange-600 border border-orange-200",
+    emerald: "bg-emerald-50 text-emerald-600 border border-emerald-200",
+    amber: "bg-amber-50 text-amber-600 border border-amber-200",
+    rose: "bg-rose-50 text-rose-600 border border-rose-200",
+    slate: "bg-stone-100 text-stone-700 border border-stone-200",
   };
 
   const deltaStyles = {
-    positive: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-    negative: "text-rose-400 bg-rose-500/10 border-rose-500/20",
-    neutral: "text-slate-400 bg-slate-800 border-slate-700",
+    positive: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    negative: "text-rose-700 bg-rose-50 border-rose-200",
+    neutral: "text-stone-600 bg-stone-100 border-stone-200",
   };
 
   const DeltaIcon =
@@ -45,14 +45,14 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className={`p-5 rounded-3xl bg-slate-900/70 border border-slate-800/90 shadow-xl backdrop-blur-md flex flex-col justify-between space-y-3 transition-all duration-200 hover:border-slate-700 ${className}`}
+      className={`p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between space-y-3 transition-all duration-200 hover:border-orange-300 hover:shadow-card-hover ${className}`}
     >
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <span className="text-xs font-semibold uppercase tracking-wider text-stone-500">
           {label}
         </span>
         {icon && (
-          <div className={`p-2.5 rounded-2xl shrink-0 ${iconRingStyles[variant]}`}>
+          <div className={`p-2.5 rounded-xl shrink-0 ${iconRingStyles[variant]}`}>
             {icon}
           </div>
         )}
@@ -60,7 +60,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
       <div className="space-y-1">
         <div className="flex items-baseline gap-2.5 flex-wrap">
-          <span className="text-2xl sm:text-3xl font-extrabold text-white font-heading tracking-tight">
+          <span className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading tracking-tight">
             {value}
           </span>
           {delta !== undefined && (
@@ -72,7 +72,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             </span>
           )}
         </div>
-        {subtitle && <p className="text-xs text-slate-400 line-clamp-1">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-stone-500 line-clamp-1">{subtitle}</p>}
       </div>
     </div>
   );

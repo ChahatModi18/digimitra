@@ -35,30 +35,34 @@ export const LevelCard: React.FC<LevelCardProps> = ({
     {
       num: "0",
       badge: "Foundational",
-      color: "from-slate-800 to-slate-900 border-slate-700/80 text-slate-300",
-      icon: <Building className="w-5 h-5 text-slate-400" />,
-      accentBg: "bg-slate-800/80 text-slate-300",
+      badgeHi: "बुनियादी तत्परता",
+      color: "bg-white border-stone-200 text-stone-900 hover:border-stone-400",
+      icon: <Building className="w-5 h-5 text-stone-500" />,
+      accentBg: "bg-stone-100 text-stone-700",
     },
     {
       num: "1",
       badge: "Basic Presence",
-      color: "from-blue-950/40 to-slate-900 border-blue-500/30 text-blue-300",
-      icon: <Zap className="w-5 h-5 text-blue-400" />,
-      accentBg: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+      badgeHi: "डिजिटल उपस्थिति",
+      color: "bg-white border-stone-200 text-stone-900 hover:border-orange-300",
+      icon: <Zap className="w-5 h-5 text-orange-600" />,
+      accentBg: "bg-orange-50 text-orange-700",
     },
     {
       num: "2",
       badge: "Operational",
-      color: "from-indigo-950/40 to-slate-900 border-indigo-500/30 text-indigo-300",
-      icon: <Sparkles className="w-5 h-5 text-indigo-400" />,
-      accentBg: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
+      badgeHi: "परिचालन डिजिटलीकरण",
+      color: "bg-white border-stone-200 text-stone-900 hover:border-orange-300",
+      icon: <Sparkles className="w-5 h-5 text-orange-600" />,
+      accentBg: "bg-orange-50 text-orange-700",
     },
     {
       num: "3",
       badge: "Growth & Data",
-      color: "from-emerald-950/40 to-slate-900 border-emerald-500/30 text-emerald-300",
-      icon: <BarChart2 className="w-5 h-5 text-emerald-400" />,
-      accentBg: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+      badgeHi: "विकास व डेटा",
+      color: "bg-white border-stone-200 text-stone-900 hover:border-emerald-300",
+      icon: <BarChart2 className="w-5 h-5 text-emerald-600" />,
+      accentBg: "bg-emerald-50 text-emerald-700",
     },
   ];
 
@@ -70,22 +74,22 @@ export const LevelCard: React.FC<LevelCardProps> = ({
   return (
     <div
       onClick={onSelect}
-      className={`relative p-6 sm:p-7 rounded-3xl bg-gradient-to-br ${meta.color} border shadow-xl backdrop-blur-md flex flex-col justify-between space-y-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+      className={`relative p-6 sm:p-7 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between space-y-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover ${
         isCurrent
-          ? "ring-2 ring-indigo-500 border-indigo-400 shadow-indigo-500/20"
+          ? "ring-2 ring-orange-500 border-orange-400 shadow-orange-500/10"
           : isTarget
-          ? "ring-2 ring-emerald-500 border-emerald-400 shadow-emerald-500/20"
-          : "hover:border-slate-600"
+          ? "ring-2 ring-emerald-500 border-emerald-400 shadow-emerald-500/10"
+          : "hover:border-orange-200"
       } ${onSelect ? "cursor-pointer" : ""} ${className}`}
     >
       {/* Top row: level tag & icon */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-extrabold text-sm text-white font-heading">
+          <span className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center font-extrabold text-sm font-heading">
             L{level}
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            {meta.badge}
+          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+            {currentLang === "hi" ? meta.badgeHi : meta.badge}
           </span>
         </div>
 
@@ -100,28 +104,28 @@ export const LevelCard: React.FC<LevelCardProps> = ({
               {currentLang === "hi" ? "लक्ष्य स्तर" : "Target"}
             </Badge>
           )}
-          <div className="p-2 rounded-xl bg-white/5">{meta.icon}</div>
+          <div className="p-2 rounded-xl bg-stone-50 border border-stone-100">{meta.icon}</div>
         </div>
       </div>
 
       {/* Main info */}
       <div className="space-y-2">
-        <h4 className="text-lg sm:text-xl font-bold text-white font-heading tracking-tight">
+        <h4 className="text-lg sm:text-xl font-bold text-stone-900 font-heading tracking-tight">
           {name}
         </h4>
-        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">{description}</p>
+        <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">{description}</p>
       </div>
 
       {/* Key capabilities */}
       {capabilities && capabilities.length > 0 && (
-        <div className="space-y-2 pt-2 border-t border-slate-800/80">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div className="space-y-2 pt-3 border-t border-stone-100">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">
             {currentLang === "hi" ? "प्रमुख क्षमताएँ" : "Core Capabilities"}
           </span>
           <ul className="space-y-1.5">
             {capabilities.map((cap, i) => (
-              <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+              <li key={i} className="text-xs text-stone-700 flex items-start gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                 <span className="leading-tight">{cap}</span>
               </li>
             ))}

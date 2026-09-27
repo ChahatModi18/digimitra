@@ -23,23 +23,23 @@ export const Badge: React.FC<BadgeProps> = ({
   };
 
   const variantStyles = {
-    brand: "bg-indigo-500/15 border-indigo-500/30 text-indigo-300",
-    success: "bg-emerald-500/15 border-emerald-500/30 text-emerald-300",
-    warning: "bg-amber-500/15 border-amber-500/30 text-amber-300",
-    error: "bg-rose-500/15 border-rose-500/30 text-rose-300",
-    neutral: "bg-slate-800/80 border-slate-700 text-slate-300",
-    info: "bg-sky-500/15 border-sky-500/30 text-sky-300",
-    purple: "bg-purple-500/15 border-purple-500/30 text-purple-300",
+    brand: "bg-orange-50 border-orange-200 text-orange-700 font-bold",
+    success: "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold",
+    warning: "bg-amber-50 border-amber-200 text-amber-700 font-bold",
+    error: "bg-rose-50 border-rose-200 text-rose-700 font-bold",
+    neutral: "bg-stone-100 border-stone-200 text-stone-700 font-medium",
+    info: "bg-sky-50 border-sky-200 text-sky-700 font-bold",
+    purple: "bg-purple-50 border-purple-200 text-purple-700 font-bold",
   };
 
   const dotColor = {
-    brand: "bg-indigo-400",
-    success: "bg-emerald-400",
-    warning: "bg-amber-400",
-    error: "bg-rose-400",
-    neutral: "bg-slate-400",
-    info: "bg-sky-400",
-    purple: "bg-purple-400",
+    brand: "bg-orange-500",
+    success: "bg-emerald-500",
+    warning: "bg-amber-500",
+    error: "bg-rose-500",
+    neutral: "bg-stone-400",
+    info: "bg-sky-500",
+    purple: "bg-purple-500",
   };
 
   return (

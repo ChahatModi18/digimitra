@@ -25,7 +25,7 @@ export const Tabs: React.FC<TabsProps> = ({
 }) => {
   return (
     <div
-      className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1.5 rounded-2xl bg-slate-900/80 border border-slate-800 ${className}`}
+      className={`flex items-center gap-1.5 overflow-x-auto no-scrollbar p-1.5 rounded-2xl bg-stone-100 border border-stone-200/80 ${className}`}
     >
       {items.map((tab) => {
         const isActive = tab.id === activeId;
@@ -37,8 +37,8 @@ export const Tabs: React.FC<TabsProps> = ({
               onClick={() => onChange(tab.id)}
               className={`px-4 py-2 text-xs sm:text-sm font-semibold transition-all border-b-2 whitespace-nowrap flex items-center gap-2 ${
                 isActive
-                  ? "border-indigo-500 text-indigo-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-orange-600 text-orange-600 font-bold"
+                  : "border-transparent text-stone-500 hover:text-stone-800"
               }`}
             >
               {tab.icon && <span className="shrink-0">{tab.icon}</span>}
@@ -47,8 +47,8 @@ export const Tabs: React.FC<TabsProps> = ({
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                     isActive
-                      ? "bg-indigo-500/20 text-indigo-300"
-                      : "bg-slate-800 text-slate-400"
+                      ? "bg-orange-100 text-orange-700 font-bold"
+                      : "bg-stone-200 text-stone-600"
                   }`}
                 >
                   {tab.count}
@@ -62,27 +62,27 @@ export const Tabs: React.FC<TabsProps> = ({
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap flex items-center gap-2 select-none ${
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap flex items-center gap-2 select-none ${
               isActive
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                ? "bg-white text-orange-600 shadow-sm border border-stone-200/80 font-bold"
+                : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/60"
             }`}
           >
             {tab.icon && <span className="shrink-0">{tab.icon}</span>}
             <span>{tab.label}</span>
             {tab.count !== undefined && (
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   isActive
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-800 text-slate-400"
+                    ? "bg-orange-50 text-orange-600 border border-orange-200"
+                    : "bg-stone-200 text-stone-600"
                 }`}
               >
                 {tab.count}
               </span>
             )}
             {tab.badge && (
-              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
                 {tab.badge}
               </span>
             )}

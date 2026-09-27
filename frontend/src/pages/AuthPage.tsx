@@ -79,15 +79,15 @@ export const AuthPage: React.FC = () => {
   if (user) {
     return (
       <div className="max-w-2xl mx-auto py-10 space-y-6 animate-fadeIn">
-        <Card variant="gradient-indigo" className="p-8 sm:p-10 space-y-6">
-          <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+        <Card variant="default" className="p-8 sm:p-10 space-y-6 border-orange-200 shadow-card bg-gradient-to-br from-white via-orange-50/20 to-white">
+          <div className="flex items-center justify-between pb-6 border-b border-stone-200">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xl">
+              <div className="w-14 h-14 rounded-2xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center font-extrabold text-xl shadow-xs">
                 {user.full_name?.charAt(0) || "U"}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white font-heading">{user.full_name}</h2>
-                <span className="text-xs text-slate-400">{user.email}</span>
+                <h2 className="text-xl font-extrabold text-stone-900 font-heading">{user.full_name}</h2>
+                <span className="text-xs text-stone-500 font-medium">{user.email}</span>
               </div>
             </div>
 
@@ -97,24 +97,25 @@ export const AuthPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
-              <span className="text-slate-500 block">Account Status</span>
-              <span className="font-bold text-emerald-400 mt-1 block">Active Verified</span>
+            <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <span className="text-stone-500 font-medium block">Account Status</span>
+              <span className="font-extrabold text-emerald-700 mt-1 block">Active Verified</span>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800">
-              <span className="text-slate-500 block">Registered Mobile</span>
-              <span className="font-bold text-slate-200 mt-1 block">
+            <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <span className="text-stone-500 font-medium block">Registered Mobile</span>
+              <span className="font-bold text-stone-800 mt-1 block">
                 {user.phone_number || "Not provided"}
               </span>
             </div>
           </div>
 
-          <div className="pt-4 flex items-center justify-between gap-3 border-t border-slate-800">
+          <div className="pt-4 flex items-center justify-between gap-3 border-t border-stone-200">
             <Button
               variant="primary"
               size="md"
               onClick={() => navigate("/businesses")}
               leftIcon={<Building2 className="w-4 h-4" />}
+              className="shadow-orange-glow"
             >
               My Enterprises
             </Button>
@@ -137,13 +138,13 @@ export const AuthPage: React.FC = () => {
     <div className="max-w-md mx-auto py-10 space-y-6 animate-fadeIn">
       {/* Brand Header */}
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mx-auto flex items-center justify-center shadow-inner">
+        <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 border border-orange-200 mx-auto flex items-center justify-center shadow-xs">
           <Sparkles className="w-6 h-6" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 font-heading tracking-tight">
           {mode === "login" ? t("auth.login_title") : t("auth.register_title")}
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-stone-500">
           {mode === "login" ? t("auth.login_desc") : t("auth.register_desc")}
         </p>
       </div>
@@ -155,9 +156,9 @@ export const AuthPage: React.FC = () => {
       )}
 
       {/* Auth Card */}
-      <Card variant="default" className="p-6 sm:p-8 space-y-6">
+      <Card variant="default" className="p-6 sm:p-8 space-y-6 border-stone-200 shadow-card">
         {/* Toggle Mode */}
-        <div className="grid grid-cols-2 p-1 bg-slate-950 rounded-2xl border border-slate-800">
+        <div className="grid grid-cols-2 p-1 bg-stone-100 rounded-2xl border border-stone-200">
           <button
             type="button"
             onClick={() => {
@@ -166,8 +167,8 @@ export const AuthPage: React.FC = () => {
             }}
             className={`py-2 text-xs font-bold rounded-xl transition ${
               mode === "login"
-                ? "bg-indigo-600 text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-white text-orange-600 shadow-xs border border-stone-200/80"
+                : "text-stone-600 hover:text-stone-900"
             }`}
           >
             {t("auth.login_tab")}
@@ -180,8 +181,8 @@ export const AuthPage: React.FC = () => {
             }}
             className={`py-2 text-xs font-bold rounded-xl transition ${
               mode === "register"
-                ? "bg-indigo-600 text-white shadow-md"
-                : "text-slate-400 hover:text-white"
+                ? "bg-white text-orange-600 shadow-xs border border-stone-200/80"
+                : "text-stone-600 hover:text-stone-900"
             }`}
           >
             {t("auth.register_tab")}
@@ -215,7 +216,7 @@ export const AuthPage: React.FC = () => {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full"
+              className="w-full shadow-orange-glow"
             >
               {t("auth.login_button")}
             </Button>
@@ -266,7 +267,7 @@ export const AuthPage: React.FC = () => {
               variant="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full"
+              className="w-full shadow-orange-glow"
             >
               {t("auth.register_button")}
             </Button>
@@ -274,17 +275,17 @@ export const AuthPage: React.FC = () => {
         )}
 
         {/* Demo Fast-Login Option */}
-        <div className="pt-4 border-t border-slate-800 space-y-3 text-center">
-          <span className="text-[11px] text-slate-500 block">
+        <div className="pt-4 border-t border-stone-200 space-y-3 text-center">
+          <span className="text-[11px] text-stone-500 block font-medium">
             {currentLang === "hi" ? "त्वरित मूल्यांकन हेतु:" : "For quick demonstration testing:"}
           </span>
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             size="md"
             onClick={handleDemoLogin}
             isLoading={isLoading}
-            leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+            leftIcon={<Sparkles className="w-3.5 h-3.5 text-orange-600" />}
             className="w-full"
           >
             {t("auth.demo_button")}

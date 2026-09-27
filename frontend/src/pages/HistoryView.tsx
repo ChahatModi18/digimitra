@@ -115,13 +115,13 @@ export const HistoryView: React.FC = () => {
   const tabsList = [
     {
       id: "assessments",
-      label: currentLang === "hi" ? "मूल्यांकन सत्र" : "Assessments",
+      label: currentLang === "hi" ? "मूल्यांकन सत्र" : "Assessment History",
       icon: <FileText className="w-3.5 h-3.5" />,
       count: assessmentHistory.length,
     },
     {
       id: "roadmaps",
-      label: currentLang === "hi" ? "रोडमैप संस्करण" : "Roadmaps",
+      label: currentLang === "hi" ? "रोडमैप संस्करण" : "Roadmap Versions",
       icon: <Layers className="w-3.5 h-3.5" />,
       count: roadmapHistory.length,
     },
@@ -131,7 +131,7 @@ export const HistoryView: React.FC = () => {
     <div className="max-w-5xl mx-auto py-6 space-y-8 animate-fadeIn pb-16">
       {/* 1. Page Header */}
       <PageHeader
-        icon={<HistoryIcon className="w-8 h-8" />}
+        icon={<HistoryIcon className="w-8 h-8 text-orange-600" />}
         badge={<Badge variant="brand" size="sm">Audit & Evolution</Badge>}
         title={
           currentLang === "hi"
@@ -146,11 +146,11 @@ export const HistoryView: React.FC = () => {
         actions={
           businesses.length > 0 && (
             <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-slate-400" />
+              <Building2 className="w-4 h-4 text-stone-500" />
               <select
                 value={activeBusinessId || ""}
                 onChange={(e) => setActiveBusinessId(Number(e.target.value))}
-                className="bg-slate-900 text-white text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                className="bg-white text-stone-900 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-stone-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold shadow-xs"
               >
                 {businesses.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -170,7 +170,7 @@ export const HistoryView: React.FC = () => {
         />
       ) : assessmentHistory.length === 0 ? (
         <EmptyState
-          icon={<HistoryIcon className="w-8 h-8" />}
+          icon={<HistoryIcon className="w-8 h-8 text-orange-600" />}
           title="No Assessment Records Found"
           description="This enterprise does not have any recorded assessment sessions yet. Take the first assessment to begin tracking your digital growth."
           actionLabel="Take 3-Minute Assessment →"
@@ -179,7 +179,7 @@ export const HistoryView: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Top Controls: Tabs + Comparison CTA */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
             <Tabs items={tabsList} activeId={activeTab} onChange={setActiveTab} variant="pills" />
 
             <div className="flex items-center gap-3">
@@ -199,6 +199,7 @@ export const HistoryView: React.FC = () => {
                 size="sm"
                 onClick={() => navigate("/assessment")}
                 leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+                className="shadow-orange-glow"
               >
                 {currentLang === "hi" ? "पुनर्मूल्यांकन करें" : "Retake Assessment"}
               </Button>
@@ -208,7 +209,7 @@ export const HistoryView: React.FC = () => {
           {/* Assessments Timeline */}
           {activeTab === "assessments" && (
             <div className="space-y-4">
-              <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-800">
+              <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-stone-200">
                 {assessmentHistory.map((item, idx) => {
                   const isSubmitted = item.status === "submitted";
                   const isLatest = idx === 0;
@@ -219,20 +220,22 @@ export const HistoryView: React.FC = () => {
                       <div
                         className={`absolute -left-[27px] sm:-left-[35px] top-4 w-4 h-4 rounded-full border-2 transition-transform group-hover:scale-125 ${
                           isLatest && isSubmitted
-                            ? "bg-teal-500 border-teal-300 shadow-lg shadow-teal-500/50"
+                            ? "bg-orange-500 border-white shadow-md"
                             : isSubmitted
-                            ? "bg-indigo-500 border-indigo-300"
-                            : "bg-slate-800 border-slate-600"
+                            ? "bg-emerald-500 border-white shadow-sm"
+                            : "bg-stone-300 border-white"
                         }`}
                       />
 
                       <Card
-                        variant={isLatest && isSubmitted ? "gradient-indigo" : "default"}
-                        className="p-6 space-y-4"
+                        variant="default"
+                        className={`p-6 space-y-4 border ${
+                          isLatest && isSubmitted ? "border-orange-200 shadow-card bg-gradient-to-br from-white via-orange-50/20 to-white" : "border-stone-200 shadow-xs"
+                        }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            <span className="text-base sm:text-lg font-bold text-white">
+                            <span className="text-base sm:text-lg font-extrabold text-stone-900 font-heading">
                               Assessment #{item.id}
                             </span>
                             <Badge
@@ -249,8 +252,8 @@ export const HistoryView: React.FC = () => {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                          <div className="flex items-center gap-1.5 text-xs text-stone-500">
+                            <Calendar className="w-3.5 h-3.5 text-stone-400" />
                             <span>
                               {item.submitted_at
                                 ? `Submitted on ${new Date(item.submitted_at).toLocaleDateString()}`
@@ -260,30 +263,30 @@ export const HistoryView: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
-                            <span className="text-slate-500 block">Classified Level</span>
-                            <span className="font-bold text-white text-base mt-0.5 block">
+                          <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+                            <span className="text-stone-500 font-medium block">Classified Level</span>
+                            <span className="font-extrabold text-stone-900 text-base mt-0.5 block">
                               {item.rbdl_level !== null && item.rbdl_level !== undefined
                                 ? currentLang === "hi"
-                                  ? item.level_name_hi || `स्तर ${item.rbdl_level}`
+                                   ? item.level_name_hi || `स्तर ${item.rbdl_level}`
                                   : item.level_name_en || `Level ${item.rbdl_level}`
                                 : "In Progress"}
                             </span>
                           </div>
 
-                          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
-                            <span className="text-slate-500 block">Composite Readiness</span>
-                            <span className="font-bold text-teal-400 text-base mt-0.5 block">
+                          <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+                            <span className="text-stone-500 font-medium block">Composite Readiness</span>
+                            <span className="font-extrabold text-orange-600 text-base mt-0.5 block">
                               {item.composite_score !== null && item.composite_score !== undefined
                                 ? `${item.composite_score.toFixed(1)} / 10.0`
                                 : "N/A"}
                             </span>
                           </div>
 
-                          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
+                          <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-between">
                             <div>
-                              <span className="text-slate-500 block">Question Bank</span>
-                              <span className="font-bold text-slate-300 mt-0.5 block">
+                              <span className="text-stone-500 font-medium block">Question Bank</span>
+                              <span className="font-bold text-stone-800 mt-0.5 block">
                                 Version v{item.question_bank_version || 1} (
                                 {(item.language_used || "en").toUpperCase()})
                               </span>
@@ -302,6 +305,7 @@ export const HistoryView: React.FC = () => {
                                   }
                                 }}
                                 rightIcon={<ArrowRight className="w-3 h-3" />}
+                                className="shadow-xs"
                               >
                                 <span>
                                   {submittedAssessments.length >= 2 ? "Compare" : "Results"}
@@ -321,7 +325,7 @@ export const HistoryView: React.FC = () => {
           {/* Roadmaps Timeline */}
           {activeTab === "roadmaps" && (
             <div className="space-y-4">
-              <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-slate-800">
+              <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:top-4 before:bottom-4 before:w-0.5 before:bg-stone-200">
                 {roadmapHistory.map((item) => {
                   const isActive = item.status === "active";
                   const percent =
@@ -335,18 +339,20 @@ export const HistoryView: React.FC = () => {
                       <div
                         className={`absolute -left-[27px] sm:-left-[35px] top-4 w-4 h-4 rounded-full border-2 transition-transform group-hover:scale-125 ${
                           isActive
-                            ? "bg-teal-500 border-teal-300 shadow-lg shadow-teal-500/50"
-                            : "bg-slate-800 border-slate-600"
+                            ? "bg-orange-500 border-white shadow-md"
+                            : "bg-stone-300 border-white"
                         }`}
                       />
 
                       <Card
-                        variant={isActive ? "gradient-indigo" : "default"}
-                        className="p-6 space-y-4"
+                        variant="default"
+                        className={`p-6 space-y-4 border ${
+                          isActive ? "border-orange-200 shadow-card bg-gradient-to-br from-white via-orange-50/20 to-white" : "border-stone-200 shadow-xs"
+                        }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-white">
+                            <span className="text-lg font-extrabold text-stone-900 font-heading">
                               Roadmap Version v{item.version}
                             </span>
                             <Badge
@@ -363,29 +369,29 @@ export const HistoryView: React.FC = () => {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                          <div className="flex items-center gap-1.5 text-xs text-stone-500">
+                            <Calendar className="w-3.5 h-3.5 text-stone-400" />
                             <span>{new Date(item.generated_at).toLocaleDateString()}</span>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
-                            <span className="text-slate-500 block">Milestones Completed</span>
-                            <span className="font-bold text-white text-base mt-0.5 block">
+                          <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200">
+                            <span className="text-stone-500 font-medium block">Milestones Completed</span>
+                            <span className="font-extrabold text-stone-900 text-base mt-0.5 block">
                               {item.completed_tasks} / {item.total_tasks} ({percent}%)
                             </span>
                           </div>
 
-                          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 flex flex-col justify-center">
-                            <span className="text-slate-500 block mb-1">Execution Progress</span>
+                          <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 flex flex-col justify-center">
+                            <span className="text-stone-500 font-medium block mb-1">Execution Progress</span>
                             <ProgressBar value={percent} max={100} variant="emerald" size="sm" />
                           </div>
 
-                          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
+                          <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 flex items-center justify-between">
                             <div>
-                              <span className="text-slate-500 block">Snapshot Inspector</span>
-                              <span className="font-bold text-slate-300 mt-0.5 block">
+                              <span className="text-stone-500 font-medium block">Snapshot Inspector</span>
+                              <span className="font-bold text-stone-800 mt-0.5 block">
                                 {selectedRoadmapId === item.id ? "Viewing Tasks" : "Archived Plan"}
                               </span>
                             </div>
@@ -408,8 +414,8 @@ export const HistoryView: React.FC = () => {
 
                         {/* Expanded Historical Snapshot Tasks */}
                         {selectedRoadmapId === item.id && (
-                          <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-3 animate-fadeIn">
-                            <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                          <div className="mt-4 pt-4 border-t border-stone-200 space-y-3 animate-fadeIn">
+                            <h5 className="text-xs font-bold uppercase tracking-wider text-orange-700">
                               Archived Tasks in Roadmap v{item.version}
                             </h5>
 
@@ -420,23 +426,23 @@ export const HistoryView: React.FC = () => {
                                 {selectedRoadmapDetail.all_tasks.map((task) => (
                                   <div
                                     key={task.id}
-                                    className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-xs"
+                                    className="p-3 bg-stone-50 rounded-xl border border-stone-200 flex items-center justify-between text-xs"
                                   >
                                     <div className="flex items-center gap-2">
                                       <span
                                         className={`w-2 h-2 rounded-full ${
                                           task.status === "completed"
-                                            ? "bg-emerald-400"
+                                            ? "bg-emerald-500"
                                             : task.status === "in_progress"
-                                            ? "bg-amber-400"
-                                            : "bg-slate-600"
+                                            ? "bg-amber-500"
+                                            : "bg-stone-400"
                                         }`}
                                       />
                                       <span
                                         className={
                                           task.status === "completed"
-                                            ? "text-slate-400 line-through"
-                                            : "text-slate-200"
+                                            ? "text-stone-500 line-through"
+                                            : "text-stone-800 font-semibold"
                                         }
                                       >
                                         {currentLang === "hi" ? task.title_hi : task.title_en}
@@ -472,20 +478,20 @@ export const HistoryView: React.FC = () => {
 
       {/* 2. Side-by-Side Assessment Comparison Modal */}
       {showComparisonModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-stone-200">
               <div className="flex items-center gap-2.5">
-                <div className="p-2.5 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 border border-orange-200">
                   <Scale className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-white font-heading">
+                  <h3 className="text-lg sm:text-xl font-bold text-stone-900 font-heading">
                     {currentLang === "hi"
                       ? "डिजिटल प्रगति तुलना (Reassessment Delta)"
                       : "Assessment Comparison & Readiness Progression"}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-stone-500">
                     Side-by-side comparative analysis of capabilities and score shifts.
                   </p>
                 </div>
@@ -493,7 +499,7 @@ export const HistoryView: React.FC = () => {
 
               <button
                 onClick={() => setShowComparisonModal(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-2 rounded-xl text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -509,20 +515,20 @@ export const HistoryView: React.FC = () => {
                 {/* Score & Level Jump Summary */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Previous Run */}
-                  <Card variant="subtle" className="p-4 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                  <Card variant="default" className="p-4 space-y-2 border-stone-200 bg-stone-50/50">
+                    <span className="text-[10px] uppercase font-bold text-stone-500 block">
                       Previous Run (#{comparisonData.previous_assessment_id})
                     </span>
-                    <div className="text-lg font-bold text-white">
+                    <div className="text-lg font-bold text-stone-900">
                       {currentLang === "hi"
                         ? comparisonData.previous_level_name_hi
                         : comparisonData.previous_level_name_en}
                     </div>
-                    <div className="text-xs text-slate-400">
-                      Composite: <strong className="text-slate-200">{comparisonData.previous_composite_score} / 10</strong>
+                    <div className="text-xs text-stone-600">
+                      Composite: <strong className="text-stone-900">{comparisonData.previous_composite_score} / 10</strong>
                     </div>
                     {comparisonData.previous_submitted_at && (
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-stone-400">
                         {new Date(comparisonData.previous_submitted_at).toLocaleDateString()}
                       </div>
                     )}
@@ -530,17 +536,17 @@ export const HistoryView: React.FC = () => {
 
                   {/* Level Shift Metric */}
                   <Card
-                    variant="gradient-indigo"
-                    className="p-4 flex flex-col justify-center items-center text-center space-y-1"
+                    variant="default"
+                    className="p-4 flex flex-col justify-center items-center text-center space-y-1 border-orange-200 bg-orange-50/40"
                   >
-                    <span className="text-[10px] uppercase font-bold text-indigo-300 block">
+                    <span className="text-[10px] uppercase font-bold text-orange-700 block">
                       Readiness Evolution
                     </span>
-                    <div className="text-2xl font-extrabold text-teal-300 font-heading">
+                    <div className="text-2xl font-extrabold text-stone-900 font-heading">
                       Level {comparisonData.previous_rbdl_level} → Level{" "}
                       {comparisonData.current_rbdl_level}
                     </div>
-                    <div className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                    <div className="text-xs font-bold text-emerald-700 flex items-center gap-1">
                       <ArrowUpRight className="w-3.5 h-3.5" />
                       <span>
                         Delta: {comparisonData.composite_score_delta >= 0 ? "+" : ""}
@@ -550,20 +556,20 @@ export const HistoryView: React.FC = () => {
                   </Card>
 
                   {/* Current Run */}
-                  <Card variant="subtle" className="p-4 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-teal-400 block">
+                  <Card variant="default" className="p-4 space-y-2 border-emerald-200 bg-emerald-50/30">
+                    <span className="text-[10px] uppercase font-bold text-emerald-700 block">
                       Current Run (#{comparisonData.current_assessment_id})
                     </span>
-                    <div className="text-lg font-bold text-white">
+                    <div className="text-lg font-bold text-stone-900">
                       {currentLang === "hi"
                         ? comparisonData.current_level_name_hi
                         : comparisonData.current_level_name_en}
                     </div>
-                    <div className="text-xs text-slate-400">
-                      Composite: <strong className="text-teal-300">{comparisonData.current_composite_score} / 10</strong>
+                    <div className="text-xs text-stone-600">
+                      Composite: <strong className="text-emerald-800 font-bold">{comparisonData.current_composite_score} / 10</strong>
                     </div>
                     {comparisonData.current_submitted_at && (
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-[10px] text-stone-400">
                         {new Date(comparisonData.current_submitted_at).toLocaleDateString()}
                       </div>
                     )}
@@ -572,13 +578,13 @@ export const HistoryView: React.FC = () => {
 
                 {/* 9 Dimensions Comparison Table */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-stone-600">
                     Dimension Score Shifts (9 Dimensions)
                   </h4>
 
-                  <div className="overflow-x-auto rounded-2xl border border-slate-800">
+                  <div className="overflow-x-auto rounded-2xl border border-stone-200">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800">
+                      <thead className="bg-stone-50 text-stone-600 font-bold border-b border-stone-200">
                         <tr>
                           <th className="p-3.5">Dimension</th>
                           <th className="p-3.5">Previous</th>
@@ -587,26 +593,26 @@ export const HistoryView: React.FC = () => {
                           <th className="p-3.5">Trend</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800 bg-slate-900/60">
+                      <tbody className="divide-y divide-stone-200 bg-white">
                         {comparisonData.dimension_comparisons.map((dim) => {
                           const isImproved = dim.status === "improved";
                           const isDeclined = dim.status === "declined";
 
                           return (
-                            <tr key={dim.dimension_code} className="hover:bg-slate-800/40">
-                              <td className="p-3.5 font-medium text-white">
+                            <tr key={dim.dimension_code} className="hover:bg-stone-50/70">
+                              <td className="p-3.5 font-semibold text-stone-900">
                                 {currentLang === "hi" ? dim.dimension_name_hi : dim.dimension_name_en}
                               </td>
-                              <td className="p-3.5 text-slate-400">{dim.previous_score.toFixed(1)}</td>
-                              <td className="p-3.5 font-bold text-slate-200">{dim.current_score.toFixed(1)}</td>
+                              <td className="p-3.5 text-stone-500">{dim.previous_score.toFixed(1)}</td>
+                              <td className="p-3.5 font-bold text-stone-800">{dim.current_score.toFixed(1)}</td>
                               <td className="p-3.5 font-bold font-mono">
                                 <span
                                   className={
                                     isImproved
-                                      ? "text-emerald-400"
+                                      ? "text-emerald-700 font-bold"
                                       : isDeclined
-                                      ? "text-rose-400"
-                                      : "text-slate-400"
+                                      ? "text-rose-600 font-bold"
+                                      : "text-stone-500"
                                   }
                                 >
                                   {dim.score_delta > 0 ? "+" : ""}
@@ -641,9 +647,9 @@ export const HistoryView: React.FC = () => {
 
                 {/* Completed Tasks in Between */}
                 {comparisonData.completed_tasks_count > 0 && (
-                  <Card variant="subtle" className="p-4 space-y-2 border-emerald-500/20 bg-emerald-950/10">
-                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4" />
+                  <Card variant="default" className="p-4 space-y-2 border-emerald-200 bg-emerald-50/30">
+                    <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       <span>
                         {comparisonData.completed_tasks_count}{" "}
                         {currentLang === "hi"
@@ -651,13 +657,13 @@ export const HistoryView: React.FC = () => {
                           : "Roadmap Milestones Completed Between Assessments"}
                       </span>
                     </span>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-slate-300 pt-1">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-stone-700 pt-1">
                       {(currentLang === "hi"
                         ? comparisonData.completed_task_titles_hi
                         : comparisonData.completed_task_titles_en
                       ).map((title, i) => (
                         <li key={i} className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           <span>{title}</span>
                         </li>
                       ))}

@@ -5,17 +5,14 @@ import {
   Sparkles,
   ArrowRight,
   Zap,
-  Building2,
   Compass,
-  CheckCircle2,
-  ShieldCheck,
   Activity,
   Layers,
-  HelpCircle,
+  Building2,
+  Smartphone,
+  ChevronRight,
 } from "lucide-react";
-import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
-import { Card } from "../components/ui/Card";
 import { LevelCard } from "../components/domain/LevelCard";
 import { DimensionCard } from "../components/domain/DimensionCard";
 import { Section } from "../components/layout/Section";
@@ -134,98 +131,178 @@ export const Dashboard: React.FC = () => {
   const steps = [
     {
       step: "01",
-      titleEn: "Register Your MSME",
-      titleHi: "उद्यम पंजीकरण करें",
-      descEn: "Select your sector (Retail, Manufacturing, Services), state, and enterprise scale.",
-      descHi: "अपना व्यवसाय क्षेत्र (खुदरा, विनिर्माण, सेवा), राज्य और उद्यम आकार चुनें।",
-    },
-    {
-      step: "02",
-      titleEn: "Answer 14 Pragmatic Questions",
-      titleHi: "14 सरल प्रश्नों के उत्तर दें",
-      descEn: "A 3-minute health check covering real-world workflows without confusing technical jargon.",
+      titleEn: "Assess",
+      titleHi: "मूल्यांकन करें",
+      descEn: "Answer 14 simple multiple-choice questions about your shop, clinic, or firm.",
       descHi: "दैनिक व्यवसाय संचालन से जुड़े 14 व्यावहारिक प्रश्नों का 3 मिनट में उत्तर दें।",
     },
     {
-      step: "03",
-      titleEn: "Instant RBDL Level & Gaps",
-      titleHi: "सटीक आरबीडीएल स्तर व कमियाँ",
-      descEn: "Deterministic scoring across 9 dimensions with high, medium, or low certainty tiers.",
+      step: "02",
+      titleEn: "Understand",
+      titleHi: "कमियां समझें",
+      descEn: "Get deterministic RBDL Level classification & 9-dimension gap scores.",
       descHi: "9 आयामों में सटीक स्कोरिंग, ताकतें और सुधार के प्रमुख क्षेत्रों की पहचान।",
     },
     {
+      step: "03",
+      titleEn: "Get Recommendations",
+      titleHi: "सुझाव प्राप्त करें",
+      descEn: "Discover high-impact digital interventions tailored to your sector & budget.",
+      descHi: "लागत, प्रभाव और प्रयास के आधार पर प्राथमिकता प्राप्त डिजिटल सिफारिशें।",
+    },
+    {
       step: "04",
-      titleEn: "Execute Phased Roadmap",
-      titleHi: "चरणबद्ध रोडमैप पूरा करें",
-      descEn: "Actionable tasks prioritized by impact, cost, and effort. Retake anytime to level up.",
-      descHi: "त्वरित परिणाम (Quick Wins) से लेकर रणनीतिक लक्ष्यों तक प्राथमिकताप्राप्त कार्य।",
+      titleEn: "Follow Your Roadmap",
+      titleHi: "रोडमैप अपनाएं",
+      descEn: "Execute structured phased milestones with 1-click status tracking.",
+      descHi: "त्वरित परिणाम (Quick Wins) से लेकर रणनीतिक लक्ष्यों तक चरणबद्ध कार्य पूरे करें।",
     },
   ];
 
+  const businessSectors = [
+    "Retail & Kirana Stores",
+    "Textiles & Handloom Sarees",
+    "Restaurants & Sweet Shops",
+    "Clinics & Pharmacies",
+    "Light Manufacturing & Workshops",
+    "Beauty Parlours & Salons",
+    "Hardware & Electricals",
+    "Wholesale & Trade",
+    "Automotive Repair Shops",
+    "Professional & Legal Services",
+    "Jewellery & Handicrafts",
+    "Electronics & Mobile Sales",
+  ];
+
   return (
-    <div className="space-y-16 pb-16 animate-fadeIn">
-      {/* 1. Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-950/70 via-slate-900/90 to-slate-950 border border-slate-800 p-8 sm:p-12 lg:p-16 shadow-2xl">
-        <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-indigo-600/15 blur-3xl pointer-events-none" />
-        <div className="absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-teal-600/10 blur-3xl pointer-events-none" />
+    <div className="space-y-12 sm:space-y-16 pb-16 animate-fadeIn">
+      {/* 1. High-Energy Vibrant Brand Hero Banner (Swiggy Product Style) */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#F0592A] via-[#FF6B35] to-[#F0592A] text-white p-6 sm:p-10 lg:p-12 shadow-xl">
+        {/* Subtle decorative background circles */}
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-3xl space-y-6">
-          <Badge variant="brand" size="md" icon={<Sparkles className="w-3.5 h-3.5 mr-1" />}>
-            {currentLang === "hi" ? "भारतीय एमएसएमई हेतु एआई डिजिटल सलाहकार" : "AI Digital Consultant for Indian MSMEs"}
-          </Badge>
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
+          {/* Top Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider border border-white/30">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Requirement-Based Digitalization (RBDL)</span>
+          </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-heading tracking-tight leading-tight">
-            {currentLang === "hi" ? (
-              <>
-                अपने व्यवसाय का डिजिटलीकरण करें,{" "}
-                <span className="dm-gradient-text-indigo">एक-एक कदम आगे बढ़कर।</span>
-              </>
-            ) : (
-              <>
-                Digitalize your business,{" "}
-                <span className="dm-gradient-text-indigo">one step at a time.</span>
-              </>
-            )}
+          {/* Main Headline */}
+          <h1 className="text-3xl sm:text-5xl font-extrabold text-white font-heading tracking-tight leading-[1.15]">
+            {currentLang === "hi"
+              ? "डिजिटलीकरण करें अपने व्यापार का। आगे बढ़ें DigiMitra के साथ!"
+              : "Digitalize your business, one step at a time. DigiMitra it!"}
           </h1>
 
-          <p className="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed max-w-2xl">
+          <p className="text-base sm:text-lg text-white/90 max-w-2xl mx-auto leading-relaxed font-medium">
             {currentLang === "hi"
-              ? "डिजीमित्र एक पारदर्शी, नियम-आधारित डिजिटल सलाहकार ढांचा है जो भारतीय स्थानीय व्यवसायों को उनकी वास्तविक जरूरतों के अनुसार चरणबद्ध रोडमैप प्रदान करता है।"
-              : "DigiMitra is a deterministic, requirement-based digitalization framework designed to evaluate your MSME's digital readiness and deliver a personalized, actionable transformation roadmap."}
+              ? "अपनी डिजिटल तत्परता का 3 मिनट में मुफ्त मूल्यांकन करें, व्यावहारिक कमियों की पहचान करें और चरणबद्ध रोडमैप प्राप्त करें।"
+              : "Understand your digital readiness, identify biggest operational gaps, and get a tailored step-by-step roadmap built for Indian MSMEs."}
           </p>
 
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link to="/assessment">
-              <Button
-                variant="primary"
-                size="lg"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-                className="shadow-xl shadow-indigo-600/30"
-              >
-                {currentLang === "hi" ? "मुफ़्त मूल्यांकन शुरू करें" : "Start Free Assessment"}
-              </Button>
-            </Link>
+          {/* Interactive Fast-Action Search & Selection Bar */}
+          <div className="max-w-2xl mx-auto bg-white rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-2 w-full sm:w-auto text-[#241C15] font-bold text-xs sm:text-sm border-b sm:border-b-0 sm:border-r border-[#EDE2D8]">
+              <Building2 className="w-4 h-4 text-[#F0592A] shrink-0" />
+              <span className="truncate">Sharma Silk Sarees, Jaipur</span>
+            </div>
 
-            <Link to="/businesses">
-              <Button
-                variant="secondary"
-                size="lg"
-                leftIcon={<Building2 className="w-4 h-4 text-indigo-400" />}
-              >
-                {currentLang === "hi" ? "उद्यम डैशबोर्ड देखें" : "Explore DigiMitra"}
-              </Button>
+            <div className="flex-1 w-full flex items-center px-3 py-2 text-xs sm:text-sm text-[#6B5D52]">
+              <span className="truncate">Evaluate payments, records, online presence...</span>
+            </div>
+
+            <Link to="/assessment" className="w-full sm:w-auto shrink-0">
+              <button className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#F0592A] hover:bg-[#D94A1F] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+                <span>Start Assessment</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </Link>
           </div>
 
-          <div className="pt-4 flex items-center gap-6 text-xs text-slate-400 font-medium">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <CheckCircle2 className="w-4 h-4" />
-              100% Free & Open Source
-            </span>
-            <span className="flex items-center gap-1.5 text-indigo-300">
-              <ShieldCheck className="w-4 h-4" />
-              Bilingual (हिन्दी / English)
-            </span>
+          {/* 3 Main Action Cards (Direct Product Category Style) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-6 text-left">
+            {/* Card 1: Assessment */}
+            <Link
+              to="/assessment"
+              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+            >
+              <div>
+                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15]">
+                  DIGITAL ASSESSMENT
+                </h3>
+                <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
+                  14 QUESTIONS • 3 MINUTES
+                </p>
+                <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-[#FFE8DE] text-[#F0592A] text-[11px] font-extrabold uppercase">
+                  100% FREE FOR MSMES
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between pt-2">
+                <div className="w-10 h-10 rounded-full bg-[#F0592A] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <div className="p-2.5 rounded-2xl bg-[#FFF4ED] text-[#F0592A]">
+                  <Smartphone className="w-8 h-8" />
+                </div>
+              </div>
+            </Link>
+
+            {/* Card 2: Roadmap */}
+            <Link
+              to="/roadmap"
+              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+            >
+              <div>
+                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15]">
+                  TRANSFORMATION ROADMAP
+                </h3>
+                <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
+                  PHASED MILESTONES • QUICK WINS
+                </p>
+                <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-[#DCF2EE] text-[#1B7A6E] text-[11px] font-extrabold uppercase">
+                  PROGRESS TRACKING
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between pt-2">
+                <div className="w-10 h-10 rounded-full bg-[#F0592A] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <div className="p-2.5 rounded-2xl bg-[#DCF2EE] text-[#1B7A6E]">
+                  <Compass className="w-8 h-8" />
+                </div>
+              </div>
+            </Link>
+
+            {/* Card 3: Recommendations */}
+            <Link
+              to="/recommendations"
+              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+            >
+              <div>
+                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15]">
+                  RECOMMENDATIONS
+                </h3>
+                <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
+                  DETERMINISTIC & EXPLAINABLE
+                </p>
+                <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-[#FBF1DD] text-[#C88A1D] text-[11px] font-extrabold uppercase">
+                  TAILORED TOOLS
+                </div>
+              </div>
+
+              <div className="flex items-end justify-between pt-2">
+                <div className="w-10 h-10 rounded-full bg-[#F0592A] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <div className="p-2.5 rounded-2xl bg-[#FBF1DD] text-[#C88A1D]">
+                  <Zap className="w-8 h-8" />
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
@@ -240,16 +317,16 @@ export const Dashboard: React.FC = () => {
         }
         title={
           currentLang === "hi"
-            ? "आरबीडीएल डिजिटल परिपक्वता यात्रा (स्तर 0 से 3)"
-            : "Requirement-Based Digitalization Levels (0–3)"
+            ? "आपकी डिजिटल परिपक्वता यात्रा"
+            : "Your Digitalization Journey"
         }
         subtitle={
           currentLang === "hi"
-            ? "प्रत्येक व्यवसाय के लिए स्पष्ट, संरचित और क्रमिक डिजिटल उन्नयन के 4 स्तर।"
-            : "A structured, progressive hierarchy ensuring businesses master foundational operations before adopting complex technologies."
+            ? "बुनियादी तत्परता से लेकर डेटा-संचालित विकास तक 4 क्रमिक स्तर।"
+            : "Move from foundational readiness to data-driven growth through 4 progressive stages."
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
           {rbdlLevels.map((lvl) => (
             <LevelCard
               key={lvl.level}
@@ -270,18 +347,18 @@ export const Dashboard: React.FC = () => {
       <Section
         badge={
           <Badge variant="success" size="sm" icon={<Zap className="w-3 h-3 mr-1" />}>
-            Comprehensive Assessment
+            9 Operational Pillars
           </Badge>
         }
         title={
           currentLang === "hi"
-            ? "मूल्यांकन के 9 डिजिटल आयाम"
-            : "9 Digitalization Dimensions Analyzed"
+            ? "डिजीमित्र क्या मूल्यांकन करता है"
+            : "What DigiMitra Evaluates"
         }
         subtitle={
           currentLang === "hi"
-            ? "हर आयाम आपके व्यवसाय के एक विशिष्ट परिचालन पहलू का सटीक विश्लेषण करता है।"
-            : "A holistic diagnostic inspecting both hardware readiness, operational software, and customer-facing channels."
+            ? "आपके व्यवसाय के 9 आवश्यक डिजिटल पहलुओं का व्यापक और पारदर्शी विश्लेषण।"
+            : "A comprehensive diagnostic inspecting hardware readiness, operational workflows, and digital sales channels."
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -303,33 +380,33 @@ export const Dashboard: React.FC = () => {
       <Section
         badge={
           <Badge variant="warning" size="sm" icon={<Compass className="w-3 h-3 mr-1" />}>
-            Simple Workflow
+            Simple 4-Step Process
           </Badge>
         }
         title={
           currentLang === "hi"
             ? "डिजीमित्र कैसे काम करता है"
-            : "How DigiMitra Works for Your MSME"
+            : "How DigiMitra Works"
         }
         subtitle={
           currentLang === "hi"
-            ? "4 आसान चरणों में अपने व्यवसाय को एक संरचित डिजिटल रोडमैप दें।"
-            : "Fast, explainable, and privacy-preserving guidance from diagnostic to milestone execution."
+            ? "कुछ ही मिनटों में अपने व्यवसाय को एक संरचित और व्यावहारिक कार्य योजना दें।"
+            : "Understand the process from quick questionnaire to personalized milestone execution."
         }
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {steps.map((s) => (
             <div
               key={s.step}
-              className="p-6 rounded-3xl bg-slate-900/70 border border-slate-800 shadow-xl space-y-3 relative group hover:border-slate-700 transition backdrop-blur-md"
+              className="p-6 rounded-2xl bg-white border border-[#EDE2D8] shadow-card space-y-3 relative group hover:border-[#F0592A] hover:shadow-lg transition"
             >
-              <span className="text-3xl font-black text-indigo-500/30 font-mono block">
+              <span className="text-3xl font-black text-[#F0592A]/30 font-mono block">
                 {s.step}
               </span>
-              <h3 className="text-base font-bold text-white font-heading">
+              <h3 className="text-base font-bold text-[#241C15] font-heading">
                 {currentLang === "hi" ? s.titleHi : s.titleEn}
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-[#6B5D52] leading-relaxed">
                 {currentLang === "hi" ? s.descHi : s.descEn}
               </p>
             </div>
@@ -337,94 +414,54 @@ export const Dashboard: React.FC = () => {
         </div>
       </Section>
 
-      {/* 5. Why Requirement-Based Digitalization (Value Section) */}
+      {/* 5. Enterprise Categories Supported (Swiggy Pill Grid Style) */}
       <Section
-        badge={
-          <Badge variant="info" size="sm" icon={<HelpCircle className="w-3 h-3 mr-1" />}>
-            Methodology Advantage
-          </Badge>
-        }
-        title={
-          currentLang === "hi"
-            ? "पारंपरिक परामर्श बनाम डिजीमित्र आरबीडीएल"
-            : "Why Requirement-Based Digitalization (RBDL)?"
-        }
-        subtitle={
-          currentLang === "hi"
-            ? "सामान्य एआई चैटबॉट्स या महंगे सलाहकारों की तुलना में स्पष्ट अंतर।"
-            : "Eliminating generic advice and expensive software that Indian MSMEs cannot sustain."
-        }
+        title="MSME Sectors Supported Across India"
+        subtitle="Customized digital diagnostic rules for diverse local business models."
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card variant="subtle" className="p-7 space-y-4 border-rose-500/20 bg-rose-950/10">
-            <h4 className="text-base font-bold text-rose-300 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-400" />
-              Generic Consultants & Chatbots
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-300">
-              <li className="flex items-start gap-2">
-                <span className="text-rose-400 font-bold">✕</span>
-                Recommends expensive ERP/SaaS regardless of budget or readiness.
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-rose-400 font-bold">✕</span>
-                Black-box LLM hallucinations with no reproducible rule audit trail.
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-rose-400 font-bold">✕</span>
-                No consideration for local Indian retail constraints or language barriers.
-              </li>
-            </ul>
-          </Card>
-
-          <Card variant="default" className="p-7 space-y-4 border-indigo-500/30 bg-indigo-950/20">
-            <h4 className="text-base font-bold text-emerald-300 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              DigiMitra RBDL Engine
-            </h4>
-            <ul className="space-y-2.5 text-xs text-slate-300">
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                Gated prerequisite checks (e.g. smartphone before ERP, UPI before ONDC).
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                100% deterministic rules with auditable evidence traces and score deltas.
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                Native bilingual support in Hindi and English with phased actionable milestones.
-              </li>
-            </ul>
-          </Card>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {businessSectors.map((sector, i) => (
+            <div
+              key={i}
+              className="p-3.5 rounded-xl bg-white border border-[#EDE2D8] text-xs font-bold text-[#241C15] flex items-center justify-between hover:border-[#F0592A] hover:shadow-xs transition cursor-pointer"
+            >
+              <span className="truncate">{sector}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#9C8F84] shrink-0" />
+            </div>
+          ))}
         </div>
       </Section>
 
-      {/* 6. Call to Action Banner */}
-      <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-indigo-900/60 via-indigo-950/80 to-slate-950 border border-indigo-500/30 shadow-2xl text-center space-y-6">
-        <div className="max-w-xl mx-auto space-y-2">
-          <h3 className="text-2xl sm:text-3xl font-bold text-white font-heading">
-            {currentLang === "hi"
-              ? "आज ही अपने व्यवसाय का डिजिटल मूल्यांकन करें"
-              : "Ready to accelerate your MSME's digital journey?"}
+      {/* 6. Call to Action Banner (Dark App Bar Style) */}
+      <section className="p-8 sm:p-12 rounded-3xl bg-[#241C15] text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="space-y-3 text-center md:text-left max-w-lg">
+          <div className="flex items-center justify-center md:justify-start gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#F0592A] flex items-center justify-center text-white font-bold text-xs">
+              ✦
+            </div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#F0592A]">
+              Free AI Digital Consultant
+            </span>
+          </div>
+          <h3 className="text-2xl sm:text-3xl font-bold font-heading text-white">
+            Ready to upgrade your enterprise?
           </h3>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {currentLang === "hi"
-              ? "केवल 3 मिनट में अपना आरबीडीएल स्तर जानें और व्यक्तिगत कार्य योजना प्राप्त करें।"
-              : "Discover your exact digital readiness level and start executing Quick Win recommendations today."}
+          <p className="text-xs sm:text-sm text-[#9C8F84] leading-relaxed">
+            Take the 3-minute diagnostic assessment today to unlock your personalized transformation roadmap.
           </p>
         </div>
 
-        <div className="flex justify-center gap-4 flex-wrap">
-          <Link to="/assessment">
-            <Button variant="primary" size="lg" rightIcon={<ArrowRight className="w-4 h-4" />}>
-              {currentLang === "hi" ? "निःशुल्क मूल्यांकन शुरू करें" : "Start Free Assessment"}
-            </Button>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Link to="/assessment" className="w-full sm:w-auto">
+            <button className="w-full px-6 py-3.5 rounded-xl bg-[#F0592A] hover:bg-[#D94A1F] text-white font-bold text-sm shadow-lg shadow-[#F0592A]/30 transition flex items-center justify-center gap-2">
+              <span>Start Free Assessment</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
           </Link>
-          <Link to="/businesses">
-            <Button variant="secondary" size="lg">
-              {currentLang === "hi" ? "व्यवसाय प्रबंधित करें" : "Manage Businesses"}
-            </Button>
+          <Link to="/businesses" className="w-full sm:w-auto">
+            <button className="w-full px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition">
+              My Businesses
+            </button>
           </Link>
         </div>
       </section>
@@ -433,10 +470,10 @@ export const Dashboard: React.FC = () => {
       <div className="pt-4 text-center">
         <button
           onClick={() => setShowDiagnostics(!showDiagnostics)}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition"
+          className="inline-flex items-center gap-1.5 text-xs text-[#9C8F84] hover:text-[#6B5D52] transition font-medium"
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>{showDiagnostics ? "Hide System Health & Diagnostics" : "Show System Health & API Status"}</span>
+          <span>{showDiagnostics ? "Hide System Health & Diagnostics" : "Show System Health & API Diagnostics"}</span>
         </button>
 
         {showDiagnostics && (
