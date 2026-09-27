@@ -95,3 +95,31 @@ export const getAssessmentClassification = async (
   );
   return response.data;
 };
+
+export const getAssessmentHistory = async (
+  businessId: number
+): Promise<import("../types").AssessmentHistoryItem[]> => {
+  await ensureAuthenticatedSession();
+  const response = await apiClient.get<APIResponse<import("../types").AssessmentHistoryItem[]>>(
+    `/assessments/business/${businessId}/history`
+  );
+  return response.data.data || [];
+};
+
+export const compareAssessments = async (
+  businessId: number,
+  currentAssessmentId?: number,
+  previousAssessmentId?: number
+): Promise<import("../types").AssessmentComparison> => {
+  await ensureAuthenticatedSession();
+  const params: Record<string, number> = {};
+  if (currentAssessmentId) params.current_assessment_id = currentAssessmentId;
+  if (previousAssessmentId) params.previous_assessment_id = previousAssessmentId;
+
+  const response = await apiClient.get<APIResponse<import("../types").AssessmentComparison>>(
+    `/assessments/business/${businessId}/compare`,
+    { params }
+  );
+  return response.data.data!;
+};
+

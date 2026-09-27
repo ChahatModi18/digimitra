@@ -1,7 +1,5 @@
-"""Assessment and RBDL Classification API Endpoints (Claude C3)."""
-
-from typing import List
-from fastapi import APIRouter, Depends, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
@@ -10,6 +8,8 @@ from app.models.user import User
 from app.schemas.assessment import (
     AssessmentAnswerRead,
     AssessmentAnswerSave,
+    AssessmentComparisonRead,
+    AssessmentHistoryItemRead,
     AssessmentRead,
     AssessmentScoresResponse,
     AssessmentStart,
@@ -40,6 +40,48 @@ async def start_assessment(
         success=True,
         message="Assessment session ready.",
         data=assessment,
+    )
+
+
+@router.get("/business/{business_id}/history", response_model=APIResponse[List[AssessmentHistoryItemRead]])
+async def get_assessment_history(
+    business_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve historical assessment timeline and submitted versions for a business."""
+    history = await AssessmentService.get_assessment_history_for_business(
+        db=db,
+        business_id=business_id,
+        user_id=current_user.id,
+    )
+    return APIResponse(
+        success=True,
+        message="Assessment history retrieved successfully.",
+        data=history,
+    )
+
+
+@router.get("/business/{business_id}/compare", response_model=APIResponse[AssessmentComparisonRead])
+async def compare_assessments(
+    business_id: int,
+    current_assessment_id: Optional[int] = Query(None, description="Current / later assessment ID"),
+    previous_assessment_id: Optional[int] = Query(None, description="Previous / earlier assessment ID"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Compare two assessments for a business, calculating score deltas and completed roadmap tasks."""
+    comparison = await AssessmentService.compare_assessments(
+        db=db,
+        business_id=business_id,
+        user_id=current_user.id,
+        current_assessment_id=current_assessment_id,
+        previous_assessment_id=previous_assessment_id,
+    )
+    return APIResponse(
+        success=True,
+        message="Assessment comparison generated successfully.",
+        data=comparison,
     )
 
 
@@ -149,3 +191,4 @@ async def get_assessment_classification(
         success=True,
         data=classification_result,
     )
+

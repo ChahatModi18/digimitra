@@ -23,12 +23,15 @@ from app.schemas.assessment import (
     AssessmentAnswerItem,
     AssessmentAnswerRead,
     AssessmentAnswerSave,
+    AssessmentComparisonRead,
+    AssessmentHistoryItemRead,
     AssessmentRead,
     AssessmentScoreRead,
     AssessmentScoresResponse,
     AssessmentWithQuestionsRead,
     ClassificationEvidenceRead,
     ClassificationResultRead,
+    DimensionComparisonRead,
     QuestionOptionRead,
     QuestionRead,
 )
@@ -688,3 +691,313 @@ class AssessmentService:
             explanation_summary_hi=f"आवश्यकता-आधारित मूल्यांकन के आधार पर व्यवसाय {level_name_hi} पर निर्धारित।",
             evidence_traces=evidence_reads,
         )
+
+    @classmethod
+    async def get_assessment_history_for_business(
+        cls, db: AsyncSession, business_id: int, user_id: int
+    ) -> List[AssessmentHistoryItemRead]:
+        """Retrieve historical assessment timeline for a business."""
+        await cls.verify_business_ownership(db, business_id, user_id)
+
+        stmt = (
+            select(Assessment)
+            .options(
+                selectinload(Assessment.classification_results).selectinload(
+                    ClassificationResult.rbdl_level_rel
+                ),
+                selectinload(Assessment.scores),
+            )
+            .where(Assessment.business_id == business_id)
+            .order_by(desc(Assessment.id))
+        )
+        res = await db.execute(stmt)
+        assessments = res.scalars().all()
+
+        history_items: List[AssessmentHistoryItemRead] = []
+        for a in assessments:
+            primary_cr = next(
+                (cr for cr in a.classification_results if cr.is_primary), None
+            )
+            composite_score: Optional[float] = None
+            if a.scores:
+                c_score = 0.0
+                for s in a.scores:
+                    raw = float(s.raw_score)
+                    max_p = float(s.max_possible_score)
+                    val = round((raw / max_p) * 10.0, 2) if max_p > 0 else 0.0
+                    weight = (
+                        RBDL_DIMENSIONS[s.dimension_code].weight
+                        if s.dimension_code in RBDL_DIMENSIONS
+                        else 0.0
+                    )
+                    c_score += val * weight
+                composite_score = round(c_score, 2)
+
+            level_name_en = None
+            level_name_hi = None
+            certainty_tier = None
+
+            if primary_cr:
+                level_name_en = (
+                    primary_cr.rbdl_level_rel.name_en
+                    if primary_cr.rbdl_level_rel
+                    else f"Level {primary_cr.rbdl_level}"
+                )
+                level_name_hi = (
+                    primary_cr.rbdl_level_rel.name_hi
+                    if primary_cr.rbdl_level_rel
+                    else f"स्तर {primary_cr.rbdl_level}"
+                )
+                certainty_tier = "HIGH"
+
+            history_items.append(
+                AssessmentHistoryItemRead(
+                    id=a.id,
+                    business_id=a.business_id,
+                    question_bank_version=a.question_bank_version,
+                    language_used=a.language_used,
+                    status=a.status,
+                    rbdl_level=primary_cr.rbdl_level if primary_cr else None,
+                    level_name_en=level_name_en,
+                    level_name_hi=level_name_hi,
+                    composite_score=composite_score,
+                    certainty_tier=certainty_tier,
+                    started_at=a.started_at,
+                    submitted_at=a.submitted_at,
+                    previous_assessment_id=a.previous_assessment_id,
+                )
+            )
+        return history_items
+
+    @classmethod
+    async def compare_assessments(
+        cls,
+        db: AsyncSession,
+        business_id: int,
+        user_id: int,
+        current_assessment_id: Optional[int] = None,
+        previous_assessment_id: Optional[int] = None,
+    ) -> AssessmentComparisonRead:
+        """Compare two submitted assessments for a business, computing dimension deltas, composite shifts, and completed tasks."""
+        business = await cls.verify_business_ownership(db, business_id, user_id)
+
+        # 1. Resolve assessments to compare
+        if current_assessment_id:
+            curr_res = await db.execute(
+                select(Assessment)
+                .options(
+                    selectinload(Assessment.classification_results).selectinload(
+                        ClassificationResult.rbdl_level_rel
+                    ),
+                    selectinload(Assessment.scores),
+                )
+                .where(
+                    Assessment.id == current_assessment_id,
+                    Assessment.business_id == business_id,
+                    Assessment.status == "submitted",
+                )
+            )
+            curr_assessment = curr_res.scalar_one_or_none()
+            if not curr_assessment:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Submitted assessment ID {current_assessment_id} not found for this business.",
+                )
+        else:
+            # Pick latest submitted assessment
+            curr_res = await db.execute(
+                select(Assessment)
+                .options(
+                    selectinload(Assessment.classification_results).selectinload(
+                        ClassificationResult.rbdl_level_rel
+                    ),
+                    selectinload(Assessment.scores),
+                )
+                .where(
+                    Assessment.business_id == business_id,
+                    Assessment.status == "submitted",
+                )
+                .order_by(desc(Assessment.id))
+            )
+            curr_assessment = curr_res.scalar_one_or_none()
+            if not curr_assessment:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No completed assessments found for this business to compare.",
+                )
+
+        if previous_assessment_id:
+            prev_res = await db.execute(
+                select(Assessment)
+                .options(
+                    selectinload(Assessment.classification_results).selectinload(
+                        ClassificationResult.rbdl_level_rel
+                    ),
+                    selectinload(Assessment.scores),
+                )
+                .where(
+                    Assessment.id == previous_assessment_id,
+                    Assessment.business_id == business_id,
+                    Assessment.status == "submitted",
+                )
+            )
+            prev_assessment = prev_res.scalar_one_or_none()
+            if not prev_assessment:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Previous submitted assessment ID {previous_assessment_id} not found for this business.",
+                )
+        else:
+            # Check previous_assessment_id link or previous chronological assessment
+            prior_id = curr_assessment.previous_assessment_id
+            if prior_id:
+                prev_res = await db.execute(
+                    select(Assessment)
+                    .options(
+                        selectinload(Assessment.classification_results).selectinload(
+                            ClassificationResult.rbdl_level_rel
+                        ),
+                        selectinload(Assessment.scores),
+                    )
+                    .where(
+                        Assessment.id == prior_id,
+                        Assessment.status == "submitted",
+                    )
+                )
+                prev_assessment = prev_res.scalar_one_or_none()
+            else:
+                prev_assessment = None
+
+            if not prev_assessment:
+                # Find preceding submitted assessment by ID
+                prev_res = await db.execute(
+                    select(Assessment)
+                    .options(
+                        selectinload(Assessment.classification_results).selectinload(
+                            ClassificationResult.rbdl_level_rel
+                        ),
+                        selectinload(Assessment.scores),
+                    )
+                    .where(
+                        Assessment.business_id == business_id,
+                        Assessment.status == "submitted",
+                        Assessment.id < curr_assessment.id,
+                    )
+                    .order_by(desc(Assessment.id))
+                )
+                prev_assessment = prev_res.scalar_one_or_none()
+
+        if not prev_assessment:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least two completed assessments are required to generate a comparison.",
+            )
+
+        if prev_assessment.id == curr_assessment.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot compare an assessment with itself. Please select two distinct assessments.",
+            )
+
+        # 2. Extract classification details
+        curr_cr = next(
+            (cr for cr in curr_assessment.classification_results if cr.is_primary), None
+        )
+        prev_cr = next(
+            (cr for cr in prev_assessment.classification_results if cr.is_primary), None
+        )
+
+        curr_lvl = curr_cr.rbdl_level if curr_cr else 0
+        prev_lvl = prev_cr.rbdl_level if prev_cr else 0
+
+        curr_lvl_name_en = curr_cr.rbdl_level_rel.name_en if (curr_cr and curr_cr.rbdl_level_rel) else f"Level {curr_lvl}"
+        curr_lvl_name_hi = curr_cr.rbdl_level_rel.name_hi if (curr_cr and curr_cr.rbdl_level_rel) else f"स्तर {curr_lvl}"
+        prev_lvl_name_en = prev_cr.rbdl_level_rel.name_en if (prev_cr and prev_cr.rbdl_level_rel) else f"Level {prev_lvl}"
+        prev_lvl_name_hi = prev_cr.rbdl_level_rel.name_hi if (prev_cr and prev_cr.rbdl_level_rel) else f"स्तर {prev_lvl}"
+
+        # 3. Compute Dimension Scores & Comparisons
+        curr_scores_dict: Dict[str, float] = {}
+        curr_comp = 0.0
+        for s in curr_assessment.scores:
+            raw = float(s.raw_score)
+            max_p = float(s.max_possible_score)
+            val = round((raw / max_p) * 10.0, 2) if max_p > 0 else 0.0
+            curr_scores_dict[s.dimension_code] = val
+            weight = RBDL_DIMENSIONS[s.dimension_code].weight if s.dimension_code in RBDL_DIMENSIONS else 0.0
+            curr_comp += val * weight
+
+        prev_scores_dict: Dict[str, float] = {}
+        prev_comp = 0.0
+        for s in prev_assessment.scores:
+            raw = float(s.raw_score)
+            max_p = float(s.max_possible_score)
+            val = round((raw / max_p) * 10.0, 2) if max_p > 0 else 0.0
+            prev_scores_dict[s.dimension_code] = val
+            weight = RBDL_DIMENSIONS[s.dimension_code].weight if s.dimension_code in RBDL_DIMENSIONS else 0.0
+            prev_comp += val * weight
+
+        dim_comparisons: List[DimensionComparisonRead] = []
+        for dim_code, dim_meta in RBDL_DIMENSIONS.items():
+            c_val = curr_scores_dict.get(dim_code, 0.0)
+            p_val = prev_scores_dict.get(dim_code, 0.0)
+            delta = round(c_val - p_val, 2)
+            pct_chg = round(((c_val - p_val) / p_val) * 100.0, 1) if p_val > 0 else (100.0 if c_val > 0 else 0.0)
+
+            if delta > 0.05:
+                status_str = "improved"
+            elif delta < -0.05:
+                status_str = "declined"
+            else:
+                status_str = "maintained"
+
+            dim_comparisons.append(
+                DimensionComparisonRead(
+                    dimension_code=dim_code,
+                    dimension_name_en=dim_meta.name_en,
+                    dimension_name_hi=dim_meta.name_hi,
+                    previous_score=p_val,
+                    current_score=c_val,
+                    score_delta=delta,
+                    percentage_change=pct_chg,
+                    status=status_str,
+                )
+            )
+
+        # 4. Check for tasks completed in historical roadmaps between the assessments
+        from app.models.roadmap import Roadmap, RoadmapTask
+        tasks_res = await db.execute(
+            select(RoadmapTask)
+            .join(Roadmap, RoadmapTask.roadmap_id == Roadmap.id)
+            .where(
+                Roadmap.business_id == business_id,
+                RoadmapTask.status == "completed",
+            )
+        )
+        completed_tasks = tasks_res.scalars().all()
+
+        completed_titles_en = [t.title_en for t in completed_tasks]
+        completed_titles_hi = [t.title_hi for t in completed_tasks]
+
+        return AssessmentComparisonRead(
+            business_id=business_id,
+            business_name=business.name,
+            previous_assessment_id=prev_assessment.id,
+            previous_submitted_at=prev_assessment.submitted_at,
+            previous_rbdl_level=prev_lvl,
+            previous_level_name_en=prev_lvl_name_en,
+            previous_level_name_hi=prev_lvl_name_hi,
+            previous_composite_score=round(prev_comp, 2),
+            current_assessment_id=curr_assessment.id,
+            current_submitted_at=curr_assessment.submitted_at,
+            current_rbdl_level=curr_lvl,
+            current_level_name_en=curr_lvl_name_en,
+            current_level_name_hi=curr_lvl_name_hi,
+            current_composite_score=round(curr_comp, 2),
+            composite_score_delta=round(curr_comp - prev_comp, 2),
+            level_change=(curr_lvl - prev_lvl),
+            dimension_comparisons=dim_comparisons,
+            completed_tasks_count=len(completed_tasks),
+            completed_task_titles_en=completed_titles_en,
+            completed_task_titles_hi=completed_titles_hi,
+        )
+

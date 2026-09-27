@@ -2,8 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
-import { Navbar } from "./components/Navbar";
-import { Footer } from "./components/Footer";
+import { AppShell } from "./components/layout/AppShell";
 import { Dashboard } from "./pages/Dashboard";
 import { AuthPage } from "./pages/AuthPage";
 import { BusinessRegistration } from "./pages/BusinessRegistration";
@@ -26,9 +25,8 @@ export const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
-            <Navbar />
-            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <AppShell>
+            <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
               <Routes>
                 {/* 1. Landing Page */}
                 <Route path="/" element={<Dashboard />} />
@@ -55,9 +53,8 @@ export const App: React.FC = () => {
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </main>
-            <Footer />
-          </div>
+            </div>
+          </AppShell>
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>

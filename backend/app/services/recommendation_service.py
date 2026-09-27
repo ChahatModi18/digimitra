@@ -24,6 +24,7 @@ from app.domain.recommendations.roadmap_generator import RoadmapGeneratorEngine,
 from app.models.assessment import Assessment, AssessmentScore
 from app.models.business import Business
 from app.models.classification_result import ClassificationResult
+from app.models.progress_log import ProgressLog
 from app.models.recommendation import BusinessRecommendation, Recommendation
 from app.models.roadmap import Roadmap, RoadmapTask
 from app.schemas.recommendation import (
@@ -32,6 +33,8 @@ from app.schemas.recommendation import (
 )
 from app.schemas.roadmap import (
     PhasedRoadmapGroup,
+    ProgressLogRead,
+    ProgressSummaryRead,
     RoadmapRead,
     RoadmapSummaryRead,
     RoadmapTaskRead,
@@ -484,6 +487,11 @@ class RecommendationService:
         for rm in roadmaps:
             total = len(rm.tasks)
             completed = sum(1 for t in rm.tasks if t.status == "completed")
+            in_prog = sum(1 for t in rm.tasks if t.status == "in_progress")
+            skipped = sum(1 for t in rm.tasks if t.status == "skipped")
+            pending = sum(1 for t in rm.tasks if t.status == "pending")
+            pct = round((completed / total) * 100.0, 1) if total > 0 else 0.0
+
             summaries.append(
                 RoadmapSummaryRead(
                     id=rm.id,
@@ -492,10 +500,137 @@ class RecommendationService:
                     status=rm.status,
                     total_tasks=total,
                     completed_tasks=completed,
+                    in_progress_tasks=in_prog,
+                    pending_tasks=pending,
+                    skipped_tasks=skipped,
+                    completion_percentage=pct,
                     generated_at=rm.generated_at,
                 )
             )
         return summaries
+
+    @classmethod
+    async def get_roadmap_by_id(
+        cls,
+        db: AsyncSession,
+        roadmap_id: int,
+        user_id: int,
+    ) -> RoadmapRead:
+        """Retrieve a specific historical or active roadmap by ID."""
+        rm_res = await db.execute(
+            select(Roadmap)
+            .options(
+                selectinload(Roadmap.tasks).selectinload(RoadmapTask.recommendation),
+                selectinload(Roadmap.classification_result),
+                selectinload(Roadmap.business),
+            )
+            .where(Roadmap.id == roadmap_id)
+        )
+        roadmap = rm_res.scalar_one_or_none()
+        if not roadmap:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Roadmap ID {roadmap_id} not found.",
+            )
+
+        if roadmap.business.owner_user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: You do not own this business.",
+            )
+
+        cr = roadmap.classification_result
+        current_lvl = cr.rbdl_level if cr else 0
+        target_lvl = min(3, current_lvl + 1)
+        if current_lvl == 3:
+            target_lvl = 3
+
+        return await cls._build_roadmap_read(
+            db=db,
+            roadmap=roadmap,
+            current_rbdl_level=current_lvl,
+            target_rbdl_level=target_lvl,
+        )
+
+    @classmethod
+    async def get_progress_summary(
+        cls,
+        db: AsyncSession,
+        business_id: int,
+        user_id: int,
+    ) -> ProgressSummaryRead:
+        """Calculate detailed progress metrics across phases for the active roadmap."""
+        await cls.verify_business_ownership(db, business_id, user_id)
+
+        # Load active roadmap
+        rm_res = await db.execute(
+            select(Roadmap)
+            .options(selectinload(Roadmap.tasks))
+            .where(
+                Roadmap.business_id == business_id,
+                Roadmap.status == "active",
+            )
+            .order_by(Roadmap.version.desc())
+        )
+        active_rm = rm_res.scalar_one_or_none()
+        if not active_rm:
+            # Check latest roadmap regardless of status
+            any_rm_res = await db.execute(
+                select(Roadmap)
+                .options(selectinload(Roadmap.tasks))
+                .where(Roadmap.business_id == business_id)
+                .order_by(Roadmap.version.desc())
+            )
+            active_rm = any_rm_res.scalar_one_or_none()
+
+        if not active_rm:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No roadmap found for this business. Complete assessment first.",
+            )
+
+        tasks = active_rm.tasks
+        total = len(tasks)
+        completed = sum(1 for t in tasks if t.status == "completed")
+        in_prog = sum(1 for t in tasks if t.status == "in_progress")
+        pending = sum(1 for t in tasks if t.status == "pending")
+        skipped = sum(1 for t in tasks if t.status == "skipped")
+        pct = round((completed / total) * 100.0, 1) if total > 0 else 0.0
+
+        p1_tasks = [t for t in tasks if t.phase_number == 1]
+        p1_total = len(p1_tasks)
+        p1_done = sum(1 for t in p1_tasks if t.status == "completed")
+
+        p2_tasks = [t for t in tasks if t.phase_number == 2]
+        p2_total = len(p2_tasks)
+        p2_done = sum(1 for t in p2_tasks if t.status == "completed")
+
+        p3_tasks = [t for t in tasks if t.phase_number == 3]
+        p3_total = len(p3_tasks)
+        p3_done = sum(1 for t in p3_tasks if t.status == "completed")
+
+        # Ready for reassessment if user completed at least 2 tasks or all of Phase 1
+        is_ready = (completed >= 2) or (p1_total > 0 and p1_done == p1_total)
+
+        return ProgressSummaryRead(
+            roadmap_id=active_rm.id,
+            business_id=business_id,
+            version=active_rm.version,
+            total_tasks=total,
+            completed_tasks=completed,
+            in_progress_tasks=in_prog,
+            pending_tasks=pending,
+            skipped_tasks=skipped,
+            completion_percentage=pct,
+            phase_1_total=p1_total,
+            phase_1_completed=p1_done,
+            phase_2_total=p2_total,
+            phase_2_completed=p2_done,
+            phase_3_total=p3_total,
+            phase_3_completed=p3_done,
+            is_ready_for_reassessment=is_ready,
+            last_activity_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        )
 
     @classmethod
     async def update_task_status(
@@ -505,7 +640,7 @@ class RecommendationService:
         status_in: RoadmapTaskStatusUpdate,
         user_id: int,
     ) -> RoadmapTaskRead:
-        """Update status of a roadmap task."""
+        """Update status of a roadmap task, log state transition in progress_logs, and update timestamps."""
         t_res = await db.execute(
             select(RoadmapTask)
             .options(
@@ -525,9 +660,26 @@ class RecommendationService:
         # Verify business ownership
         await cls.verify_business_ownership(db, task.roadmap.business_id, user_id)
 
-        task.status = status_in.status
+        prev_status = task.status
+        new_status = status_in.status
+        now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+
+        task.status = new_status
+        task.updated_at = now_utc
         if status_in.skip_reason is not None:
             task.skip_reason = status_in.skip_reason
+
+        # Append state change log into progress_logs
+        log_record = ProgressLog(
+            roadmap_task_id=task.id,
+            business_id=task.roadmap.business_id,
+            previous_status=prev_status,
+            new_status=new_status,
+            note=status_in.skip_reason,
+            logged_by_user_id=user_id,
+            logged_at=now_utc,
+        )
+        db.add(log_record)
 
         await db.commit()
         await db.refresh(task)
@@ -553,6 +705,8 @@ class RecommendationService:
             estimated_effort_level=rec.estimated_effort_level if rec else "low",
             impact_level=rec.impact_level if rec else "medium",
             created_at=task.created_at,
+            updated_at=task.updated_at,
+            completed_at=now_utc if task.status == "completed" else None,
         )
 
     @classmethod
@@ -563,7 +717,7 @@ class RecommendationService:
         current_rbdl_level: int,
         target_rbdl_level: int,
     ) -> RoadmapRead:
-        """Helper to construct a fully populated RoadmapRead response."""
+        """Helper to construct a fully populated RoadmapRead response with task progress metrics."""
         tasks_res = await db.execute(
             select(RoadmapTask)
             .options(selectinload(RoadmapTask.recommendation))
@@ -578,10 +732,19 @@ class RecommendationService:
         all_reads: List[RoadmapTaskRead] = []
 
         completed_count = 0
+        in_prog_count = 0
+        pending_count = 0
+        skipped_count = 0
 
         for t in tasks:
             if t.status == "completed":
                 completed_count += 1
+            elif t.status == "in_progress":
+                in_prog_count += 1
+            elif t.status == "skipped":
+                skipped_count += 1
+            else:
+                pending_count += 1
 
             rec = t.recommendation
             p_names = RoadmapGeneratorEngine.PHASE_NAMES.get(
@@ -608,6 +771,8 @@ class RecommendationService:
                 estimated_effort_level=rec.estimated_effort_level if rec else "low",
                 impact_level=rec.impact_level if rec else "medium",
                 created_at=t.created_at,
+                updated_at=t.updated_at,
+                completed_at=t.updated_at if t.status == "completed" else None,
             )
             all_reads.append(t_read)
             if t.phase_number == 1:
@@ -617,11 +782,20 @@ class RecommendationService:
             else:
                 p3_reads.append(t_read)
 
+        p1_done = sum(1 for t in p1_reads if t.status == "completed")
+        p1_in_prog = sum(1 for t in p1_reads if t.status == "in_progress")
+        p2_done = sum(1 for t in p2_reads if t.status == "completed")
+        p2_in_prog = sum(1 for t in p2_reads if t.status == "in_progress")
+        p3_done = sum(1 for t in p3_reads if t.status == "completed")
+        p3_in_prog = sum(1 for t in p3_reads if t.status == "in_progress")
+
         p1_group = PhasedRoadmapGroup(
             phase_number=1,
             phase_name_en=RoadmapGeneratorEngine.PHASE_NAMES[1][0],
             phase_name_hi=RoadmapGeneratorEngine.PHASE_NAMES[1][1],
             total_tasks=len(p1_reads),
+            completed_tasks=p1_done,
+            in_progress_tasks=p1_in_prog,
             tasks=p1_reads,
         )
         p2_group = PhasedRoadmapGroup(
@@ -629,6 +803,8 @@ class RecommendationService:
             phase_name_en=RoadmapGeneratorEngine.PHASE_NAMES[2][0],
             phase_name_hi=RoadmapGeneratorEngine.PHASE_NAMES[2][1],
             total_tasks=len(p2_reads),
+            completed_tasks=p2_done,
+            in_progress_tasks=p2_in_prog,
             tasks=p2_reads,
         )
         p3_group = PhasedRoadmapGroup(
@@ -636,8 +812,13 @@ class RecommendationService:
             phase_name_en=RoadmapGeneratorEngine.PHASE_NAMES[3][0],
             phase_name_hi=RoadmapGeneratorEngine.PHASE_NAMES[3][1],
             total_tasks=len(p3_reads),
+            completed_tasks=p3_done,
+            in_progress_tasks=p3_in_prog,
             tasks=p3_reads,
         )
+
+        total_t = len(all_reads)
+        comp_pct = round((completed_count / total_t) * 100.0, 1) if total_t > 0 else 0.0
 
         return RoadmapRead(
             id=roadmap.id,
@@ -647,11 +828,16 @@ class RecommendationService:
             status=roadmap.status,
             current_rbdl_level=current_rbdl_level,
             target_rbdl_level=target_rbdl_level,
-            total_tasks=len(all_reads),
+            total_tasks=total_t,
             completed_tasks=completed_count,
+            in_progress_tasks=in_prog_count,
+            pending_tasks=pending_count,
+            skipped_tasks=skipped_count,
+            completion_percentage=comp_pct,
             phase_1=p1_group,
             phase_2=p2_group,
             phase_3=p3_group,
             all_tasks=all_reads,
             generated_at=roadmap.generated_at,
         )
+

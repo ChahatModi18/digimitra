@@ -191,3 +191,76 @@ export interface ClassificationResult {
   explanation_summary_hi: string;
   evidence_traces: ClassificationEvidence[];
 }
+
+export interface AssessmentHistoryItem {
+  id: number;
+  business_id: number;
+  question_bank_version: number;
+  language_used: string;
+  status: "in_progress" | "submitted" | "abandoned";
+  rbdl_level?: number | null;
+  level_name_en?: string | null;
+  level_name_hi?: string | null;
+  composite_score?: number | null;
+  certainty_tier?: string | null;
+  started_at: string;
+  submitted_at?: string | null;
+  previous_assessment_id?: number | null;
+}
+
+export interface DimensionComparison {
+  dimension_code: string;
+  dimension_name_en: string;
+  dimension_name_hi: string;
+  previous_score: number;
+  current_score: number;
+  score_delta: number;
+  percentage_change: number;
+  status: "improved" | "declined" | "maintained";
+}
+
+export interface AssessmentComparison {
+  business_id: number;
+  business_name: string;
+  previous_assessment_id: number;
+  previous_submitted_at?: string | null;
+  previous_rbdl_level: number;
+  previous_level_name_en: string;
+  previous_level_name_hi: string;
+  previous_composite_score: number;
+  current_assessment_id: number;
+  current_submitted_at?: string | null;
+  current_rbdl_level: number;
+  current_level_name_en: string;
+  current_level_name_hi: string;
+  current_composite_score: number;
+  composite_score_delta: number;
+  level_change: number;
+  dimension_comparisons: DimensionComparison[];
+  completed_tasks_count: number;
+  completed_task_titles_en: string[];
+  completed_task_titles_hi: string[];
+  disclaimer_en: string;
+  disclaimer_hi: string;
+}
+
+export interface ProgressSummary {
+  roadmap_id: number;
+  business_id: number;
+  version: number;
+  total_tasks: number;
+  completed_tasks: number;
+  in_progress_tasks: number;
+  pending_tasks: number;
+  skipped_tasks: number;
+  completion_percentage: number;
+  phase_1_total: number;
+  phase_1_completed: number;
+  phase_2_total: number;
+  phase_2_completed: number;
+  phase_3_total: number;
+  phase_3_completed: number;
+  is_ready_for_reassessment: boolean;
+  last_activity_at?: string;
+}
+

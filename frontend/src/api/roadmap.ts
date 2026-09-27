@@ -65,6 +65,8 @@ export interface RoadmapTaskItem {
   reason_en?: string;
   reason_hi?: string;
   created_at?: string;
+  updated_at?: string;
+  completed_at?: string;
 }
 
 export interface PhasedGroup {
@@ -131,6 +133,22 @@ export const getRoadmapHistory = async (businessId: number): Promise<RoadmapHist
   return resp.data.data;
 };
 
+export const getRoadmapById = async (roadmapId: number): Promise<PhasedRoadmapData> => {
+  const resp = await apiClient.get<{ success: boolean; data: PhasedRoadmapData }>(
+    `/roadmap/${roadmapId}`
+  );
+  return resp.data.data;
+};
+
+export const getProgressSummary = async (
+  businessId: number
+): Promise<import("../types").ProgressSummary> => {
+  const resp = await apiClient.get<{ success: boolean; data: import("../types").ProgressSummary }>(
+    `/roadmap/business/${businessId}/progress`
+  );
+  return resp.data.data;
+};
+
 export const updateRoadmapTaskStatus = async (
   taskId: number,
   status: "pending" | "in_progress" | "completed" | "skipped",
@@ -145,3 +163,4 @@ export const updateRoadmapTaskStatus = async (
   );
   return resp.data.data;
 };
+

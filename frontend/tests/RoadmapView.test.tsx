@@ -17,6 +17,7 @@ vi.mock("../src/api/roadmap", () => ({
   getBusinessRecommendations: vi.fn(),
   getRoadmapHistory: vi.fn(),
   updateRoadmapTaskStatus: vi.fn(),
+  getProgressSummary: vi.fn(),
 }));
 
 describe("RoadmapView Component", () => {
@@ -31,7 +32,7 @@ describe("RoadmapView Component", () => {
     });
   });
 
-  it("renders the active roadmap with phased tasks and level progress", async () => {
+  it("renders the active roadmap with phased tasks and progress summary", async () => {
     (businessApi.fetchBusinesses as any).mockResolvedValueOnce([
       {
         id: 1,
@@ -101,6 +102,26 @@ describe("RoadmapView Component", () => {
       generated_at: new Date().toISOString(),
     });
 
+    (roadmapApi.getProgressSummary as any).mockResolvedValueOnce({
+      business_id: 1,
+      roadmap_id: 10,
+      roadmap_version: 1,
+      current_rbdl_level: 0,
+      target_rbdl_level: 1,
+      total_tasks: 1,
+      completed_tasks: 0,
+      in_progress_tasks: 0,
+      pending_tasks: 1,
+      skipped_tasks: 0,
+      completion_percentage: 0.0,
+      phase_breakdown: {
+        phase_1: { name: "Quick Wins", total: 1, completed: 0, in_progress: 0, pending: 1, skipped: 0 },
+        phase_2: { name: "Core Next Steps", total: 0, completed: 0, in_progress: 0, pending: 0, skipped: 0 },
+        phase_3: { name: "Longer Term", total: 0, completed: 0, in_progress: 0, pending: 0, skipped: 0 },
+      },
+      is_ready_for_reassessment: false,
+    });
+
     (roadmapApi.getBusinessRecommendations as any).mockResolvedValueOnce({
       business_id: 1,
       assessment_id: 5,
@@ -123,12 +144,12 @@ describe("RoadmapView Component", () => {
     );
 
     // Header check
-    expect(screen.getByText(/Transformation Roadmap & Tasks/i)).toBeInTheDocument();
+    expect(screen.getByText(/Transformation Roadmap & Progress/i)).toBeInTheDocument();
 
     // Task check
     await waitFor(() => {
       expect(screen.getByText(/Adopt Dedicated Business Smartphone/i)).toBeInTheDocument();
-      expect(screen.getByText(/Phase 1: Quick Wins/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Phase 1: Quick Wins/i)[0]).toBeInTheDocument();
       expect(screen.getByText(/Recommended because your Digital Infrastructure score is below 4.0/i)).toBeInTheDocument();
     });
   });

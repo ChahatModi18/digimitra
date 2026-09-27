@@ -52,9 +52,9 @@ describe("BusinessRegistration Component", () => {
     expect(screen.getByText(/Enterprise Profile & Management/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("Ramesh Kirana Store")).toBeInTheDocument();
-      expect(screen.getByText(/Take Assessment/i)).toBeInTheDocument();
-      expect(screen.getByText(/View Roadmap/i)).toBeInTheDocument();
+      expect(screen.getAllByText("Ramesh Kirana Store")[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/Take Assessment/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/View Roadmap/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -96,8 +96,8 @@ describe("BusinessRegistration Component", () => {
       target: { value: "Gupta Electronics & Hardware" },
     });
 
-    // Submit form
-    fireEvent.click(screen.getByRole("button", { name: /Register Enterprise/i }));
+    // Submit form (target submit button)
+    fireEvent.click(screen.getByRole("button", { name: /^Register Enterprise$/i }));
 
     // Verify API called with right payload
     await waitFor(() => {

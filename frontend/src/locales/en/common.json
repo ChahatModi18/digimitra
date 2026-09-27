@@ -26,6 +26,8 @@
     "register_title": "Create MSME Account",
     "login_desc": "Access your digital assessments, recommendations, and action roadmap.",
     "register_desc": "Join thousands of Indian small business owners modernizing their operations.",
+    "login_tab": "Sign In",
+    "register_tab": "Create MSME Account",
     "email": "Email Address",
     "password": "Password",
     "full_name": "Full Name / Owner Name",

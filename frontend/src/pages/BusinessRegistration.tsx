@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
-  CheckCircle2,
   Sparkles,
   MapPin,
   Compass,
@@ -14,10 +13,22 @@ import {
 import { fetchBusinesses, createBusiness, CreateBusinessPayload } from "../api/businesses";
 import { Business } from "../types";
 import { useAuth } from "../context/AuthContext";
-import { LoadingState, ErrorAlert } from "../components/UIState";
+import {
+  PageHeader,
+  Card,
+  Button,
+  Input,
+  Select,
+  Badge,
+  Alert,
+  EmptyState,
+  LoadingState,
+  Section,
+} from "../components";
 
 export const BusinessRegistration: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLang = (i18n?.language?.startsWith("hi") ? "hi" : "en") as "en" | "hi";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { activeBusinessId, setActiveBusinessId } = useAuth();
@@ -90,164 +101,183 @@ export const BusinessRegistration: React.FC = () => {
     createMutation.mutate(formData);
   };
 
+  const activeBiz = businesses.find((b) => b.id === activeBusinessId) || businesses[0];
+
   return (
-    <div className="max-w-5xl mx-auto py-6 space-y-8 animate-fadeIn">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-950 border border-slate-800 shadow-2xl">
-        <div className="flex items-center gap-4">
-          <div className="p-3.5 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 shadow-inner">
-            <Building2 className="h-8 w-8" />
+    <div className="max-w-5xl mx-auto py-6 space-y-8 animate-fadeIn pb-16">
+      {/* 1. Standard Page Header */}
+      <PageHeader
+        icon={<Building2 className="w-8 h-8" />}
+        title={t("business.title")}
+        subtitle={t("business.subtitle")}
+        badge={<Badge variant="brand" size="sm">MSME Directory</Badge>}
+        actions={
+          <Button
+            variant={showForm ? "secondary" : "primary"}
+            size="md"
+            onClick={() => setShowForm(!showForm)}
+            leftIcon={<PlusCircle className="w-4 h-4" />}
+          >
+            {showForm
+              ? currentLang === "hi"
+                ? "पंजीकृत उद्यम देखें"
+                : "View Enterprises"
+              : currentLang === "hi"
+              ? "+ नया उद्यम जोड़ें"
+              : "+ Add Enterprise"}
+          </Button>
+        }
+      />
+
+      {errorMessage && (
+        <Alert type="error" onDismiss={() => setErrorMessage(null)}>
+          {errorMessage}
+        </Alert>
+      )}
+
+      {/* 2. Active Business Highlight Card */}
+      {activeBiz && !showForm && (
+        <Card variant="gradient-indigo" className="p-6 sm:p-8 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Badge variant="success" size="sm" dot>
+                  {currentLang === "hi" ? "सक्रिय उद्यम (Active)" : "Active Enterprise"}
+                </Badge>
+                <span className="text-xs text-indigo-300 font-mono">ID #{activeBiz.id}</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                {activeBiz.name}
+              </h2>
+              <div className="flex items-center gap-2 text-xs text-slate-300">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>
+                  {activeBiz.city}, {activeBiz.state}{" "}
+                  {activeBiz.pincode ? `(${activeBiz.pincode})` : ""}
+                </span>
+                <span className="text-slate-500">•</span>
+                <span>{activeBiz.sector}</span>
+                <span className="text-slate-500">•</span>
+                <span>{activeBiz.enterprise_size}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => navigate("/assessment")}
+                leftIcon={<Sparkles className="w-4 h-4" />}
+              >
+                {currentLang === "hi" ? "मूल्यांकन शुरू करें" : "Take Assessment"}
+              </Button>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={() => navigate("/roadmap")}
+                leftIcon={<Compass className="w-4 h-4 text-indigo-400" />}
+              >
+                {currentLang === "hi" ? "रोडमैप देखें" : "View Roadmap"}
+              </Button>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white font-heading tracking-tight">
-              {t("business.title")}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              {t("business.subtitle")}
-            </p>
-          </div>
-        </div>
+        </Card>
+      )}
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/30 transition shrink-0"
-        >
-          <PlusCircle className="w-4 h-4" />
-          <span>{showForm ? "View Registered Enterprises" : "Register New Enterprise"}</span>
-        </button>
-      </div>
-
-      {errorMessage && <ErrorAlert message={errorMessage} />}
-
-      {/* Registration Form (Collapsible or if no businesses exist) */}
+      {/* 3. Registration Form */}
       {(showForm || (!isLoading && businesses.length === 0)) && (
-        <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-6">
+        <Card variant="default" className="p-6 sm:p-8 space-y-6">
           <div className="flex items-center gap-2 pb-4 border-b border-slate-800">
             <Store className="w-5 h-5 text-teal-400" />
-            <h2 className="text-lg font-bold text-white font-heading">
+            <h3 className="text-lg font-bold text-white font-heading">
               {t("business.form_title")}
-            </h2>
+            </h3>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Business Name */}
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.name")} *
-                </label>
-                <input
-                  type="text"
+                <Input
+                  label={`${t("business.name")} *`}
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Ramesh Kirana & General Store"
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
 
-              {/* Sector / Category */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.sector")} *
-                </label>
-                <select
-                  value={formData.sector}
-                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                >
-                  <option value="Retail & Trade">Retail & Trade (किराना / व्यापार)</option>
-                  <option value="Manufacturing">Manufacturing & Production (उत्पादन)</option>
-                  <option value="Services & Consulting">Services & Consulting (सेवाएं / परामर्श)</option>
-                  <option value="Food & Hospitality">Food & Hospitality (होटल / खान-पान)</option>
-                  <option value="Handloom & Handicrafts">Handloom & Handicrafts (हथकरघा / हस्तशिल्प)</option>
-                  <option value="Healthcare & Wellness">Healthcare & Wellness (स्वास्थ्य सेवाएं)</option>
-                </select>
-              </div>
+              {/* Sector */}
+              <Select
+                label={`${t("business.sector")} *`}
+                value={formData.sector}
+                onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+              >
+                <option value="Retail & Trade">Retail & Trade (किराना / व्यापार)</option>
+                <option value="Manufacturing">Manufacturing & Production (उत्पादन)</option>
+                <option value="Services & Consulting">Services & Consulting (सेवाएं / परामर्श)</option>
+                <option value="Food & Hospitality">Food & Hospitality (होटल / खान-पान)</option>
+                <option value="Handloom & Handicrafts">Handloom & Handicrafts (हथकरघा / हस्तशिल्प)</option>
+                <option value="Healthcare & Wellness">Healthcare & Wellness (स्वास्थ्य सेवाएं)</option>
+              </Select>
 
               {/* Enterprise Size */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.size")} *
-                </label>
-                <select
-                  value={formData.enterprise_size}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      enterprise_size: e.target.value as "Micro" | "Small" | "Medium",
-                    })
-                  }
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                >
-                  <option value="Micro">Micro Enterprise (&lt; ₹1 Cr Turnover, &lt; ₹25 Lakh Inv)</option>
-                  <option value="Small">Small Enterprise (&lt; ₹10 Cr Turnover)</option>
-                  <option value="Medium">Medium Enterprise (&lt; ₹50 Cr Turnover)</option>
-                </select>
-              </div>
+              <Select
+                label={`${t("business.size")} *`}
+                value={formData.enterprise_size}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    enterprise_size: e.target.value as "Micro" | "Small" | "Medium",
+                  })
+                }
+              >
+                <option value="Micro">Micro Enterprise (&lt; ₹1 Cr Turnover)</option>
+                <option value="Small">Small Enterprise (&lt; ₹10 Cr Turnover)</option>
+                <option value="Medium">Medium Enterprise (&lt; ₹50 Cr Turnover)</option>
+              </Select>
 
               {/* State */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.state")} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.state}
-                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  placeholder="e.g. Uttar Pradesh, Maharashtra"
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
+              <Input
+                label={`${t("business.state")} *`}
+                required
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                placeholder="e.g. Uttar Pradesh, Maharashtra"
+              />
 
               {/* City */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.city")} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  placeholder="e.g. Lucknow, Pune"
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
+              <Input
+                label={`${t("business.city")} *`}
+                required
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                placeholder="e.g. Lucknow, Pune"
+              />
 
               {/* PIN Code */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.pincode")}
-                </label>
-                <input
-                  type="text"
-                  value={formData.pincode || ""}
-                  onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
-                  placeholder="e.g. 226001"
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
+              <Input
+                label={t("business.pincode")}
+                value={formData.pincode || ""}
+                onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                placeholder="e.g. 226001"
+              />
 
               {/* Preferred Language */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  {t("business.language")}
-                </label>
-                <select
-                  value={formData.primary_language}
-                  onChange={(e) => setFormData({ ...formData, primary_language: e.target.value })}
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                >
-                  <option value="en">English</option>
-                  <option value="hi">हिन्दी (Hindi)</option>
-                </select>
-              </div>
+              <Select
+                label={t("business.language")}
+                value={formData.primary_language}
+                onChange={(e) =>
+                  setFormData({ ...formData, primary_language: e.target.value })
+                }
+              >
+                <option value="en">English</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+              </Select>
 
               {/* Description */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                   {t("business.description")}
                 </label>
                 <textarea
@@ -255,65 +285,58 @@ export const BusinessRegistration: React.FC = () => {
                   value={formData.description || ""}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Briefly describe your products or services..."
-                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-2.5 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                  className="w-full bg-slate-950 text-white text-sm rounded-xl px-4 py-3 border border-slate-800 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 transition"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
               {businesses.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition"
-                >
+                <Button variant="ghost" size="md" onClick={() => setShowForm(false)}>
                   Cancel
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 type="submit"
-                disabled={createMutation.isPending}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 transition disabled:opacity-50"
+                variant="primary"
+                size="md"
+                isLoading={createMutation.isPending}
               >
-                {createMutation.isPending ? "Registering..." : t("business.submit")}
-              </button>
+                {t("business.submit")}
+              </Button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
-      {/* Registered Enterprises Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-lg font-bold text-white font-heading">
-              {t("business.list_title")} ({businesses.length})
-            </h2>
-          </div>
-        </div>
-
+      {/* 4. Registered Enterprises Grid */}
+      <Section
+        title={`${t("business.list_title")} (${businesses.length})`}
+        subtitle="Manage and switch between your registered MSME entities."
+      >
         {isLoading ? (
-          <LoadingState message="Loading your registered enterprises..." />
+          <LoadingState
+            title="Loading enterprises..."
+            description="Fetching your registered MSME entities"
+          />
         ) : businesses.length === 0 ? (
-          <div className="p-8 rounded-3xl bg-slate-900/40 border border-slate-800 text-center space-y-3">
-            <Store className="w-10 h-10 text-slate-500 mx-auto" />
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
-              {t("business.no_businesses")}
-            </p>
-          </div>
+          <EmptyState
+            icon={<Store className="w-8 h-8" />}
+            title={t("business.no_businesses")}
+            description="Register your first MSME enterprise to begin the 14-question digital assessment."
+            actionLabel="+ Register Enterprise"
+            onAction={() => setShowForm(true)}
+          />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {businesses.map((biz) => {
               const isActive = activeBusinessId === biz.id;
+
               return (
-                <div
+                <Card
                   key={biz.id}
-                  className={`p-6 rounded-3xl border transition-all duration-300 flex flex-col justify-between space-y-4 ${
-                    isActive
-                      ? "bg-slate-900 border-indigo-500/50 shadow-xl ring-1 ring-indigo-500/30"
-                      : "bg-slate-900/70 border-slate-800 hover:border-slate-700"
-                  }`}
+                  variant={isActive ? "gradient-indigo" : "default"}
+                  className="p-6 space-y-5 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
@@ -324,23 +347,23 @@ export const BusinessRegistration: React.FC = () => {
                           </span>
                           <h3 className="text-lg font-bold text-white">{biz.name}</h3>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1">
                           <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                           <span>
-                            {biz.city}, {biz.state} {biz.pincode ? `(${biz.pincode})` : ""}
+                            {biz.city}, {biz.state}{" "}
+                            {biz.pincode ? `(${biz.pincode})` : ""}
                           </span>
                         </div>
                       </div>
 
                       {isActive ? (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-3 h-3" />
+                        <Badge variant="success" size="sm" dot>
                           {t("business.active_badge")}
-                        </span>
+                        </Badge>
                       ) : (
                         <button
                           onClick={() => setActiveBusinessId(biz.id)}
-                          className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition shrink-0"
+                          className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
                         >
                           {t("business.select_active")}
                         </button>
@@ -363,35 +386,39 @@ export const BusinessRegistration: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 pt-3 border-t border-slate-800/80">
-                    <button
+                  <div className="flex items-center gap-3 pt-3 border-t border-slate-800/80">
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={() => {
                         setActiveBusinessId(biz.id);
                         navigate("/assessment");
                       }}
-                      className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md transition flex items-center justify-center gap-1.5"
+                      leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                      className="flex-1"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Take Assessment</span>
-                    </button>
+                      {currentLang === "hi" ? "मूल्यांकन करें" : "Take Assessment"}
+                    </Button>
 
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => {
                         setActiveBusinessId(biz.id);
                         navigate("/roadmap");
                       }}
-                      className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center justify-center gap-1.5"
+                      leftIcon={<Compass className="w-3.5 h-3.5 text-indigo-400" />}
+                      className="flex-1"
                     >
-                      <Compass className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>View Roadmap</span>
-                    </button>
+                      {currentLang === "hi" ? "रोडमैप देखें" : "View Roadmap"}
+                    </Button>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
         )}
-      </div>
+      </Section>
     </div>
   );
 };

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Sparkles,
   ClipboardCheck,
   ArrowRight,
-  Layers,
+  RotateCcw,
+  Building2,
 } from "lucide-react";
 import { fetchBusinesses } from "../api/businesses";
 import {
@@ -18,10 +18,20 @@ import {
 } from "../api/assessments";
 import { Business, Question, QuestionOption, ClassificationResult } from "../types";
 import { useAuth } from "../context/AuthContext";
-import { LoadingState } from "../components/UIState";
+import {
+  PageHeader,
+  Card,
+  Button,
+  Badge,
+  ProgressBar,
+  Alert,
+  LoadingState,
+  Section,
+} from "../components";
 
 export const AssessmentFlow: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { activeBusinessId, setActiveBusinessId } = useAuth();
 
@@ -67,7 +77,8 @@ export const AssessmentFlow: React.FC = () => {
         stateMap[ans.question_id] = {
           question_id: ans.question_id,
           selected_option_id: ans.selected_option_id,
-          selected_option_ids: ans.selected_option_ids || (ans.selected_option_id ? [ans.selected_option_id] : []),
+          selected_option_ids:
+            ans.selected_option_ids || (ans.selected_option_id ? [ans.selected_option_id] : []),
           text_answer: ans.text_answer,
           is_na: ans.is_na,
         };
@@ -127,6 +138,7 @@ export const AssessmentFlow: React.FC = () => {
         setActiveStep("result");
         queryClient.invalidateQueries({ queryKey: ["activeRoadmap"] });
         queryClient.invalidateQueries({ queryKey: ["businessRecommendations"] });
+        queryClient.invalidateQueries({ queryKey: ["assessmentHistory"] });
         setStatusMessage(
           currentLang === "en"
             ? `Assessment completed! Classified at RBDL Level ${res.data.rbdl_level}.`
@@ -135,7 +147,9 @@ export const AssessmentFlow: React.FC = () => {
       }
     },
     onError: (err: any) => {
-      setStatusMessage(err?.response?.data?.message || "Submission failed. Please answer required questions.");
+      setStatusMessage(
+        err?.response?.data?.message || "Submission failed. Please answer required questions."
+      );
     },
   });
 
@@ -155,7 +169,7 @@ export const AssessmentFlow: React.FC = () => {
       const current = prev[questionId] || { question_id: questionId, is_na: false };
 
       if (qType === "multi_choice") {
-        let currentIds = current.selected_option_ids || [];
+        const currentIds = current.selected_option_ids || [];
         if (isNoneOption) {
           return {
             ...prev,
@@ -167,7 +181,6 @@ export const AssessmentFlow: React.FC = () => {
             },
           };
         } else {
-          // Remove any "None" option
           const noneOption = questions
             .find((q) => q.id === questionId)
             ?.options.find((o) => o.option_code.toUpperCase().includes("NONE"));
@@ -190,7 +203,6 @@ export const AssessmentFlow: React.FC = () => {
           };
         }
       } else {
-        // Single choice or boolean
         return {
           ...prev,
           [questionId]: {
@@ -238,7 +250,7 @@ export const AssessmentFlow: React.FC = () => {
     records: { en: "Digital Bookkeeping & Records", hi: "डिजिटल बहीखाता व रिकॉर्ड" },
     payments: { en: "Digital Payment Systems", hi: "डिजिटल भुगतान प्रणाली" },
     inventory: { en: "Inventory & Stock Operations", hi: "इन्वेंट्री व स्टॉक संचालन" },
-    data_usage: { en: "Data & Sales Analytics", hi: "डेटा व बिक्री विश्लेषण" },
+    analytics: { en: "Data & Sales Analytics", hi: "डेटा व बिक्री विश्लेषण" },
     growth: { en: "Digital Growth & Marketplaces", hi: "डिजिटल विकास व मार्केटप्लेस" },
   };
 
@@ -251,71 +263,67 @@ export const AssessmentFlow: React.FC = () => {
   // Render Step 1: Assessment Introduction
   if (activeStep === "intro") {
     return (
-      <div className="max-w-4xl mx-auto py-6 space-y-8 animate-fadeIn">
-        {/* Intro Hero */}
-        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-slate-800 shadow-2xl space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 border border-teal-500/20 px-3 py-1 text-xs font-semibold text-teal-300">
-            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
-            <span>{t("assessment:intro.badge")}</span>
-          </div>
+      <div className="max-w-4xl mx-auto py-6 space-y-8 animate-fadeIn pb-16">
+        {/* Intro PageHeader */}
+        <PageHeader
+          icon={<ClipboardCheck className="w-8 h-8" />}
+          badge={<Badge variant="brand" size="sm">{t("assessment:intro.badge")}</Badge>}
+          title={t("assessment:intro.title")}
+          subtitle={t("assessment:intro.desc")}
+        />
 
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white font-heading tracking-tight leading-tight">
-              {t("assessment:intro.title")}
-            </h1>
-            <p className="text-base text-slate-300 leading-relaxed max-w-3xl">
-              {t("assessment:intro.desc")}
+        {/* Pillars Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <Card variant="subtle" className="p-6 space-y-2 border-indigo-500/20">
+            <Badge variant="brand" size="sm">
+              {t("assessment:intro.bullet_1_title")}
+            </Badge>
+            <p className="text-xs text-slate-400 leading-relaxed pt-1">
+              {t("assessment:intro.bullet_1_desc")}
             </p>
-          </div>
+          </Card>
 
-          {/* Key Assessment Pillars */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">
-                {t("assessment:intro.bullet_1_title")}
-              </span>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                {t("assessment:intro.bullet_1_desc")}
-              </p>
-            </div>
+          <Card variant="subtle" className="p-6 space-y-2 border-emerald-500/20">
+            <Badge variant="success" size="sm">
+              {t("assessment:intro.bullet_2_title")}
+            </Badge>
+            <p className="text-xs text-slate-400 leading-relaxed pt-1">
+              {t("assessment:intro.bullet_2_desc")}
+            </p>
+          </Card>
 
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
-                {t("assessment:intro.bullet_2_title")}
-              </span>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                {t("assessment:intro.bullet_2_desc")}
-              </p>
-            </div>
+          <Card variant="subtle" className="p-6 space-y-2 border-amber-500/20">
+            <Badge variant="warning" size="sm">
+              {t("assessment:intro.bullet_3_title")}
+            </Badge>
+            <p className="text-xs text-slate-400 leading-relaxed pt-1">
+              {t("assessment:intro.bullet_3_desc")}
+            </p>
+          </Card>
+        </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
-                {t("assessment:intro.bullet_3_title")}
-              </span>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                {t("assessment:intro.bullet_3_desc")}
-              </p>
-            </div>
-          </div>
-
-          {/* Enterprise Selection & Start CTA */}
-          <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="w-full sm:w-auto">
-              <label className="block text-xs font-medium text-slate-400 mb-1">
+        {/* Enterprise Selector Card */}
+        <Card variant="gradient-indigo" className="p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
                 {t("assessment:intro.select_business")}
               </label>
               {businesses.length > 0 ? (
-                <select
-                  value={activeBusinessId || ""}
-                  onChange={(e) => setActiveBusinessId(Number(e.target.value))}
-                  className="bg-slate-800 text-white text-xs sm:text-sm rounded-xl px-4 py-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
-                >
-                  {businesses.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name} ({b.city} • {b.sector})
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-indigo-400" />
+                  <select
+                    value={activeBusinessId || ""}
+                    onChange={(e) => setActiveBusinessId(Number(e.target.value))}
+                    className="bg-slate-900 text-white text-sm rounded-xl px-4 py-2.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+                  >
+                    {businesses.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.city} • {b.sector})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               ) : (
                 <Link
                   to="/businesses"
@@ -326,49 +334,42 @@ export const AssessmentFlow: React.FC = () => {
               )}
             </div>
 
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={handleStart}
-              disabled={startMutation.isPending || !activeBusinessId}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white text-sm font-bold shadow-xl shadow-teal-500/20 transition hover:scale-105 disabled:opacity-50 flex items-center justify-center gap-2"
+              isLoading={startMutation.isPending}
+              disabled={!activeBusinessId}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
             >
-              <span>
-                {startMutation.isPending ? "Starting Assessment..." : t("assessment:intro.cta_start")}
-              </span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+              {t("assessment:intro.cta_start")}
+            </Button>
           </div>
-        </div>
+        </Card>
 
         {/* 9 Dimensions Overview Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Layers className="w-5 h-5 text-indigo-400" />
-            <h3 className="text-lg font-bold text-white font-heading">
-              {currentLang === "hi"
-                ? "मूल्यांकन में शामिल 9 परिचालन आयाम"
-                : "9 Operational Dimensions Evaluated"}
-            </h3>
-          </div>
-
+        <Section
+          title={
+            currentLang === "hi"
+              ? "मूल्यांकन में शामिल 9 परिचालन आयाम"
+              : "9 Operational Dimensions Evaluated"
+          }
+          subtitle="A comprehensive evaluation covering hardware readiness, apps, and digital channels."
+        >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {Object.entries(dimensionNames).map(([code, names], idx) => (
-              <div
-                key={code}
-                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-3 text-xs"
-              >
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold font-mono">
+              <Card key={code} variant="subtle" className="p-4 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold font-mono text-xs">
                   {idx + 1}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-200">{names[currentLang]}</h4>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider font-mono">
-                    {code}
-                  </span>
+                  <h4 className="text-xs font-semibold text-slate-200">{names[currentLang]}</h4>
+                  <span className="text-[10px] text-slate-500 uppercase font-mono">{code}</span>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
-        </div>
+        </Section>
       </div>
     );
   }
@@ -376,49 +377,39 @@ export const AssessmentFlow: React.FC = () => {
   // Render Step 2: Interactive Questionnaire
   if (activeStep === "questionnaire") {
     return (
-      <div className="max-w-4xl mx-auto py-6 space-y-6 animate-fadeIn pb-24">
+      <div className="max-w-4xl mx-auto py-6 space-y-6 animate-fadeIn pb-28">
         {/* Sticky Progress Bar Header */}
-        <div className="sticky top-20 z-30 bg-slate-950/90 backdrop-blur-md p-4 rounded-2xl border border-slate-800 shadow-xl space-y-2">
+        <Card variant="default" className="sticky top-20 z-30 p-4 shadow-2xl space-y-2">
           <div className="flex justify-between items-center text-xs">
             <span className="font-bold text-white flex items-center gap-2">
               <ClipboardCheck className="w-4 h-4 text-teal-400" />
               <span>{t("assessment:questionnaire.progress")}</span>
             </span>
             <span className="text-slate-300 font-semibold">
-              {answeredCount} / {totalQuestions} {t("assessment:questionnaire.questions_answered")} ({progressPercent}%)
+              {answeredCount} / {totalQuestions} {t("assessment:questionnaire.questions_answered")} (
+              {progressPercent}%)
             </span>
           </div>
 
-          <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
-            <div
-              className="bg-gradient-to-r from-teal-400 to-indigo-500 h-full rounded-full transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
+          <ProgressBar value={progressPercent} max={100} variant="gradient" size="md" />
+        </Card>
 
         {statusMessage && (
-          <div className="p-3 bg-indigo-950/50 border border-indigo-500/30 rounded-xl text-xs text-indigo-300 flex items-center justify-between">
-            <span>{statusMessage}</span>
-            <button
-              onClick={() => setStatusMessage(null)}
-              className="text-slate-400 hover:text-white text-xs font-bold"
-            >
-              ✕
-            </button>
-          </div>
+          <Alert type="info" onDismiss={() => setStatusMessage(null)}>
+            {statusMessage}
+          </Alert>
         )}
 
         {qLoading ? (
-          <LoadingState message="Loading assessment questions..." />
+          <LoadingState
+            title="Loading questions..."
+            description="Fetching your customized 14-question diagnostic"
+          />
         ) : (
           Object.entries(questionsByDimension).map(([dimCode, dimQuestions], dimIdx) => (
-            <div
-              key={dimCode}
-              className="rounded-3xl bg-slate-900/80 border border-slate-800 p-6 sm:p-8 space-y-6 shadow-xl"
-            >
+            <Card key={dimCode} variant="default" className="p-6 sm:p-8 space-y-6">
               <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
-                <span className="w-7 h-7 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center text-xs font-bold font-mono">
+                <span className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center text-xs font-bold font-mono">
                   {dimIdx + 1}
                 </span>
                 <div>
@@ -435,17 +426,19 @@ export const AssessmentFlow: React.FC = () => {
                 {dimQuestions.map((q) => {
                   const currentAnswer = answersState[q.id];
                   const isNA = currentAnswer?.is_na || false;
-                  const selectedIds = currentAnswer?.selected_option_ids || (currentAnswer?.selected_option_id ? [currentAnswer.selected_option_id] : []);
+                  const selectedIds =
+                    currentAnswer?.selected_option_ids ||
+                    (currentAnswer?.selected_option_id ? [currentAnswer.selected_option_id] : []);
 
                   return (
                     <div
                       key={q.id}
-                      className={`p-5 rounded-2xl border transition-all duration-200 space-y-3 ${
+                      className={`p-5 rounded-2xl border transition-all duration-200 space-y-3.5 ${
                         isNA
                           ? "bg-slate-950/40 border-slate-800/60 opacity-60"
                           : selectedIds.length > 0
-                          ? "bg-slate-950 border-teal-500/40 shadow-md"
-                          : "bg-slate-950 border-slate-800"
+                          ? "bg-slate-950/90 border-indigo-500/40 shadow-md"
+                          : "bg-slate-950/70 border-slate-800"
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
@@ -472,8 +465,12 @@ export const AssessmentFlow: React.FC = () => {
                           }`}
                         >
                           {isNA
-                            ? currentLang === "en" ? "✓ Marked N/A" : "✓ लागू नहीं"
-                            : currentLang === "en" ? "Mark N/A" : "लागू नहीं"}
+                            ? currentLang === "en"
+                              ? "✓ Marked N/A"
+                              : "✓ लागू नहीं"
+                            : currentLang === "en"
+                            ? "Mark N/A"
+                            : "लागू नहीं"}
                         </button>
                       </div>
 
@@ -487,8 +484,15 @@ export const AssessmentFlow: React.FC = () => {
                               <button
                                 key={opt.id}
                                 type="button"
-                                onClick={() => handleSelectOption(q.id, opt.id, q.question_type, isNoneOption)}
-                                className={`p-3.5 rounded-xl text-left text-xs sm:text-sm font-medium border transition flex items-center justify-between ${
+                                onClick={() =>
+                                  handleSelectOption(
+                                    q.id,
+                                    opt.id,
+                                    q.question_type,
+                                    isNoneOption
+                                  )
+                                }
+                                className={`p-4 rounded-xl text-left text-xs sm:text-sm font-medium border transition-all duration-200 flex items-center justify-between ${
                                   isSelected
                                     ? "bg-indigo-950/90 border-indigo-500 text-indigo-100 shadow-md ring-1 ring-indigo-500/50"
                                     : "bg-slate-900/90 border-slate-800 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700"
@@ -496,8 +500,10 @@ export const AssessmentFlow: React.FC = () => {
                               >
                                 <span>{currentLang === "en" ? opt.label_en : opt.label_hi}</span>
                                 <span
-                                  className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] ml-2 shrink-0 ${
-                                    isSelected ? "border-indigo-400 bg-indigo-600 text-white font-bold" : "border-slate-600"
+                                  className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs ml-2 shrink-0 transition-colors ${
+                                    isSelected
+                                      ? "border-indigo-400 bg-indigo-600 text-white font-bold"
+                                      : "border-slate-600 bg-slate-950"
                                   }`}
                                 >
                                   {isSelected ? "✓" : ""}
@@ -511,7 +517,7 @@ export const AssessmentFlow: React.FC = () => {
                   );
                 })}
               </div>
-            </div>
+            </Card>
           ))
         )}
 
@@ -525,26 +531,25 @@ export const AssessmentFlow: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <button
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending}
-                className="flex-1 sm:flex-none px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs sm:text-sm font-semibold transition border border-slate-700 disabled:opacity-50"
+                isLoading={saveMutation.isPending}
               >
-                {saveMutation.isPending ? t("assessment:questionnaire.saving") : t("assessment:questionnaire.save_draft")}
-              </button>
+                {t("assessment:questionnaire.save_draft")}
+              </Button>
 
-              <button
+              <Button
+                variant="primary"
+                size="md"
                 onClick={() => submitMutation.mutate()}
-                disabled={submitMutation.isPending || answeredCount === 0}
-                className="flex-1 sm:flex-none px-6 py-2.5 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-teal-500/20 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                isLoading={submitMutation.isPending}
+                disabled={answeredCount === 0}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
               >
-                <span>
-                  {submitMutation.isPending
-                    ? t("assessment:questionnaire.evaluating")
-                    : t("assessment:questionnaire.submit")}
-                </span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+                {t("assessment:questionnaire.submit")}
+              </Button>
             </div>
           </div>
         </div>
@@ -555,32 +560,34 @@ export const AssessmentFlow: React.FC = () => {
   // Render Step 3: Classification Results & Explainability
   if (activeStep === "result" && classificationResult) {
     return (
-      <div className="max-w-4xl mx-auto py-6 space-y-8 animate-fadeIn">
+      <div className="max-w-4xl mx-auto py-6 space-y-8 animate-fadeIn pb-16">
         {/* Main RBDL Level Banner */}
-        <div className="bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6">
+        <Card variant="gradient-indigo" className="p-8 sm:p-10 space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-            <div>
+            <div className="space-y-1">
               <span className="text-xs uppercase font-bold tracking-widest text-teal-400">
                 {t("assessment:results.badge")}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-1">
-                {currentLang === "en" ? classificationResult.level_name_en : classificationResult.level_name_hi}
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-heading tracking-tight">
+                {currentLang === "en"
+                  ? classificationResult.level_name_en
+                  : classificationResult.level_name_hi}
               </h2>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider border ${
-                  classificationResult.certainty_tier === "HIGH"
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                    : classificationResult.certainty_tier === "MEDIUM"
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                    : "bg-rose-500/10 border-rose-500/30 text-rose-400"
-                }`}
-              >
-                {t("assessment:results.certainty")}: {classificationResult.certainty_tier}
-              </span>
-            </div>
+            <Badge
+              variant={
+                classificationResult.certainty_tier === "HIGH"
+                  ? "success"
+                  : classificationResult.certainty_tier === "MEDIUM"
+                  ? "warning"
+                  : "error"
+              }
+              size="md"
+              dot
+            >
+              {t("assessment:results.certainty")}: {classificationResult.certainty_tier}
+            </Badge>
           </div>
 
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80">
@@ -591,8 +598,10 @@ export const AssessmentFlow: React.FC = () => {
 
           <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800/80 text-xs text-slate-400">
             <div>
-              <span className="font-semibold text-slate-200">{t("assessment:results.composite_score")}:</span>{" "}
-              <span className="text-teal-400 font-bold text-sm">
+              <span className="font-semibold text-slate-200">
+                {t("assessment:results.composite_score")}:
+              </span>{" "}
+              <span className="text-teal-400 font-bold text-base">
                 {classificationResult.composite_score} / 10.0
               </span>
             </div>
@@ -602,131 +611,136 @@ export const AssessmentFlow: React.FC = () => {
               <span>Deterministic Rule-Based (Ruleset v{classificationResult.ruleset_version || 1})</span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 9 Dimensions Breakdown */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
-          <h3 className="text-lg font-bold text-white font-heading">
-            {t("assessment:results.dimension_scores_title")}
-          </h3>
-
+        <Section
+          title={t("assessment:results.dimension_scores_title")}
+          subtitle="Breakdown across all nine digitalization capabilities."
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(classificationResult.dimension_scores).map(([code, score]) => (
-              <div key={code} className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
+              <Card key={code} variant="subtle" className="p-4 space-y-2.5">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-semibold text-slate-300">
                     {dimensionNames[code]?.[currentLang] || code}
                   </span>
                   <span className="text-teal-400 font-bold">{score} / 10</span>
                 </div>
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-teal-500 to-indigo-500 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min(100, Math.max(0, score * 10))}%` }}
-                  />
-                </div>
-              </div>
+                <ProgressBar
+                  value={score * 10}
+                  max={100}
+                  variant={score >= 7 ? "emerald" : score >= 4 ? "brand" : "amber"}
+                  size="sm"
+                />
+              </Card>
             ))}
           </div>
-        </div>
+        </Section>
 
-        {/* Explainability & Gating Trail */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
-          <h3 className="text-lg font-bold text-white font-heading">
-            {t("assessment:results.evidence_trail_title")}
-          </h3>
-
-          {/* Category Exemptions */}
-          {classificationResult.category_exemptions.length > 0 && (
-            <div className="p-4 rounded-2xl bg-teal-950/30 border border-teal-500/30 text-teal-300 text-xs space-y-1">
-              <span className="font-bold uppercase tracking-wider block">
-                {t("assessment:results.category_exemptions")}
-              </span>
-              {classificationResult.category_exemptions.map((ex, idx) => (
-                <p key={idx}>{ex}</p>
-              ))}
-            </div>
-          )}
-
-          {/* Blocking Requirements */}
-          {classificationResult.blocking_requirements.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-xs uppercase font-bold tracking-wider text-amber-400">
-                {t("assessment:results.blocking_requirements")}
-              </h4>
-              <div className="space-y-2">
-                {classificationResult.blocking_requirements.map((req, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3.5 bg-slate-950 rounded-xl border border-amber-500/20 text-xs flex justify-between items-center"
-                  >
-                    <div>
-                      <span className="font-semibold text-slate-200">{req.requirement_name}</span>
-                      <span className="text-slate-400 block mt-0.5">
-                        Actual: <strong className="text-rose-400">{req.actual_score}</strong> • Required:{" "}
-                        <strong className="text-slate-300">{req.required_threshold}</strong>
-                      </span>
-                    </div>
-                    <span className="px-2.5 py-1 bg-amber-500/10 text-amber-300 rounded-lg font-bold text-xs">
-                      Gap: -{req.gap}
-                    </span>
-                  </div>
+        {/* Gating & Requirements Trace */}
+        <Section
+          title={t("assessment:results.evidence_trail_title")}
+          subtitle="Deterministic rule evaluation and prerequisite satisfaction trace."
+        >
+          <div className="space-y-4">
+            {/* Category Exemptions */}
+            {classificationResult.category_exemptions.length > 0 && (
+              <Alert type="info" title={t("assessment:results.category_exemptions")}>
+                {classificationResult.category_exemptions.map((ex, idx) => (
+                  <p key={idx}>{ex}</p>
                 ))}
+              </Alert>
+            )}
+
+            {/* Blocking Requirements */}
+            {classificationResult.blocking_requirements.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-xs uppercase font-bold tracking-wider text-amber-400">
+                  {t("assessment:results.blocking_requirements")}
+                </h4>
+                <div className="space-y-2">
+                  {classificationResult.blocking_requirements.map((req, idx) => (
+                    <Card
+                      key={idx}
+                      variant="subtle"
+                      className="p-4 border-amber-500/20 flex justify-between items-center text-xs"
+                    >
+                      <div>
+                        <span className="font-semibold text-slate-200">
+                          {req.requirement_name}
+                        </span>
+                        <span className="text-slate-400 block mt-0.5">
+                          Actual: <strong className="text-rose-400">{req.actual_score}</strong> • Required:{" "}
+                          <strong className="text-slate-300">{req.required_threshold}</strong>
+                        </span>
+                      </div>
+                      <Badge variant="warning" size="sm">
+                        Gap: -{req.gap}
+                      </Badge>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Satisfied Requirements */}
-          {classificationResult.satisfied_requirements.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-xs uppercase font-bold tracking-wider text-emerald-400">
-                {t("assessment:results.satisfied_capabilities")}
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {classificationResult.satisfied_requirements.map((req, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-slate-950 rounded-xl border border-emerald-500/20 text-xs flex items-center justify-between"
-                  >
-                    <span className="text-slate-300">{req.requirement_name}</span>
-                    <span className="text-emerald-400 font-bold">✓ Score: {req.actual_score}</span>
-                  </div>
-                ))}
+            {/* Satisfied Requirements */}
+            {classificationResult.satisfied_requirements.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-xs uppercase font-bold tracking-wider text-emerald-400">
+                  {t("assessment:results.satisfied_capabilities")}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {classificationResult.satisfied_requirements.map((req, idx) => (
+                    <Card
+                      key={idx}
+                      variant="subtle"
+                      className="p-3 border-emerald-500/20 text-xs flex items-center justify-between"
+                    >
+                      <span className="text-slate-300">{req.requirement_name}</span>
+                      <span className="text-emerald-400 font-bold">✓ {req.actual_score}</span>
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Navigation Action Buttons */}
-          <div className="pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
-            <button
-              onClick={() => {
-                setActiveStep("intro");
-                setCurrentAssessmentId(null);
-                setClassificationResult(null);
-              }}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
-            >
-              {t("assessment:results.reassess")}
-            </button>
-
-            <div className="flex items-center gap-3">
-              <Link
-                to="/recommendations"
-                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs sm:text-sm font-semibold border border-slate-700 transition"
-              >
-                {t("assessment:results.cta_recommendations")}
-              </Link>
-
-              <Link
-                to="/roadmap"
-                className="px-6 py-2.5 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-teal-500/20 transition flex items-center gap-2"
-              >
-                <span>{t("assessment:results.cta_roadmap")}</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+            )}
           </div>
-        </div>
+        </Section>
+
+        {/* Navigation Action Footer */}
+        <Card variant="default" className="p-6 flex flex-wrap items-center justify-between gap-4">
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={() => {
+              setActiveStep("intro");
+              setCurrentAssessmentId(null);
+              setClassificationResult(null);
+            }}
+            leftIcon={<RotateCcw className="w-4 h-4" />}
+          >
+            {t("assessment:results.reassess")}
+          </Button>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => navigate("/recommendations")}
+            >
+              {t("assessment:results.cta_recommendations")}
+            </Button>
+
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => navigate("/roadmap")}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              {t("assessment:results.cta_roadmap")}
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }

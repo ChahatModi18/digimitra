@@ -153,6 +153,72 @@ class ClassificationResultRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AssessmentHistoryItemRead(BaseModel):
+    """Summary item representing a past or present assessment in business history."""
+
+    id: int
+    business_id: int
+    question_bank_version: int
+    language_used: str
+    status: str
+    rbdl_level: Optional[int] = None
+    level_name_en: Optional[str] = None
+    level_name_hi: Optional[str] = None
+    composite_score: Optional[float] = None
+    certainty_tier: Optional[str] = None
+    started_at: datetime
+    submitted_at: Optional[datetime] = None
+    previous_assessment_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DimensionComparisonRead(BaseModel):
+    """Comparative delta analysis for a single digital dimension between two assessments."""
+
+    dimension_code: str
+    dimension_name_en: str
+    dimension_name_hi: str
+    previous_score: float
+    current_score: float
+    score_delta: float
+    percentage_change: float
+    status: str  # "improved", "declined", "maintained"
+
+
+class AssessmentComparisonRead(BaseModel):
+    """Comprehensive comparison between two assessment sessions for a business."""
+
+    business_id: int
+    business_name: str
+    previous_assessment_id: int
+    previous_submitted_at: Optional[datetime] = None
+    previous_rbdl_level: int
+    previous_level_name_en: str
+    previous_level_name_hi: str
+    previous_composite_score: float
+    current_assessment_id: int
+    current_submitted_at: Optional[datetime] = None
+    current_rbdl_level: int
+    current_level_name_en: str
+    current_level_name_hi: str
+    current_composite_score: float
+    composite_score_delta: float
+    level_change: int  # e.g. +1, 0, -1
+    dimension_comparisons: List[DimensionComparisonRead]
+    completed_tasks_count: int
+    completed_task_titles_en: List[str] = []
+    completed_task_titles_hi: List[str] = []
+    disclaimer_en: str = (
+        "Note: Score improvements reflect self-reported capability increases on the DigiMitra "
+        "readiness framework and do not guarantee or prove real-world business revenue or commercial success."
+    )
+    disclaimer_hi: str = (
+        "नोट: स्कोर में सुधार डिजिटल तत्परता रूपरेखा पर स्व-रिपोर्ट की गई क्षमताओं में वृद्धि को दर्शाता है "
+        "और यह वास्तविक दुनिया के व्यावसायिक राजस्व या वाणिज्यिक सफलता की गारंटी या प्रमाण नहीं देता है।"
+    )
+
+
 class AssessmentRead(BaseModel):
     """Assessment session entity detail."""
 
@@ -176,3 +242,5 @@ class AssessmentWithQuestionsRead(BaseModel):
     assessment: AssessmentRead
     questions: List[QuestionRead]
     answers: List[AssessmentAnswerRead] = []
+
+
