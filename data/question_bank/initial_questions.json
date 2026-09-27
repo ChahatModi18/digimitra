@@ -1,0 +1,113 @@
+[
+  {
+    "code": "Q_PAY_01",
+    "category": "Payments",
+    "rbdl_target_level": 1,
+    "text_en": "How do you currently collect payments from customers?",
+    "text_hi": "वर्तमान में आप ग्राहकों से भुगतान कैसे एकत्र करते हैं?",
+    "question_type": "single_choice",
+    "weight": 2,
+    "version": "1.0",
+    "display_order": 1,
+    "options": [
+      {
+        "option_key": "cash_only",
+        "text_en": "Exclusively cash",
+        "text_hi": "केवल नकद",
+        "score_value": 0
+      },
+      {
+        "option_key": "upi_qr",
+        "text_en": "UPI QR code (GPay / PhonePe / Paytm)",
+        "text_hi": "यूपीआई क्यूआर कोड (गूगल पे / फोनपे / पेटीएम)",
+        "score_value": 10
+      },
+      {
+        "option_key": "pos_card",
+        "text_en": "POS card swipe machine + UPI",
+        "text_hi": "पीओएस कार्ड स्वाइप मशीन + यूपीआई",
+        "score_value": 20
+      },
+      {
+        "option_key": "online_gateway",
+        "text_en": "Online payment gateway / E-commerce links",
+        "text_hi": "ऑनलाइन पेमेंट गेटवे / ई-कॉमर्स लिंक",
+        "score_value": 30
+      }
+    ]
+  },
+  {
+    "code": "Q_OPS_01",
+    "category": "Operations",
+    "rbdl_target_level": 2,
+    "text_en": "How do you record daily sales, inventory, and bookkeeping?",
+    "text_hi": "आप दैनिक बिक्री, स्टॉक और बहीखाता कैसे दर्ज करते हैं?",
+    "question_type": "single_choice",
+    "weight": 3,
+    "version": "1.0",
+    "display_order": 2,
+    "options": [
+      {
+        "option_key": "paper_ledger",
+        "text_en": "Traditional physical paper registers (Bahi Khata)",
+        "text_hi": "पारंपरिक कागजी बहीखाता",
+        "score_value": 0
+      },
+      {
+        "option_key": "spreadsheets",
+        "text_en": "Basic spreadsheets (Excel / Google Sheets)",
+        "text_hi": "बुनियादी स्प्रेडशीट (एक्सेल / गूगल शीट्स)",
+        "score_value": 15
+      },
+      {
+        "option_key": "accounting_software",
+        "text_en": "Dedicated billing/accounting software (Vyapar / Tally / Khatabook)",
+        "text_hi": "समर्पित बिलिंग/अकाउंटिंग सॉफ्टवेयर (व्यापार / टैली / खाता-बुक)",
+        "score_value": 25
+      },
+      {
+        "option_key": "integrated_erp",
+        "text_en": "Cloud ERP with real-time stock sync across multiple channels",
+        "text_hi": "क्लाउड ईआरपी और रीयल-टाइम स्टॉक सिंक",
+        "score_value": 35
+      }
+    ]
+  },
+  {
+    "code": "Q_PRES_01",
+    "category": "Online Presence",
+    "rbdl_target_level": 1,
+    "text_en": "Where is your business currently discoverable online?",
+    "text_hi": "वर्तमान में आपका व्यवसाय ऑनलाइन कहाँ खोजा जा सकता है?",
+    "question_type": "single_choice",
+    "weight": 2,
+    "version": "1.0",
+    "display_order": 3,
+    "options": [
+      {
+        "option_key": "none",
+        "text_en": "Nowhere online",
+        "text_hi": "ऑनलाइन कहीं नहीं",
+        "score_value": 0
+      },
+      {
+        "option_key": "google_maps",
+        "text_en": "Google Business Profile / WhatsApp Business catalog",
+        "text_hi": "गूगल बिजनेस प्रोफाइल / व्हाट्सएप बिजनेस कैटलॉग",
+        "score_value": 15
+      },
+      {
+        "option_key": "social_commerce",
+        "text_en": "Instagram/Facebook shop or marketplace listing (ONDC, Amazon, Flipkart)",
+        "text_hi": "इंस्टाग्राम/फेसबुक शॉप या मार्केटप्लेस लिस्टिंग (ONDC, अमेज़न)",
+        "score_value": 25
+      },
+      {
+        "option_key": "custom_website",
+        "text_en": "Dedicated e-commerce website with direct checkout",
+        "text_hi": "स्वयं की ई-कॉमर्स वेबसाइट और सीधा चेकआउट",
+        "score_value": 35
+      }
+    ]
+  }
+]

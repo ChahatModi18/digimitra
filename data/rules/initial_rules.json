@@ -1,0 +1,70 @@
+[
+  {
+    "code": "R_RBDL_L0_TRADITIONAL",
+    "name": "Non-Digital Traditional Operations Baseline",
+    "rbdl_level_target": 0,
+    "condition_expression": {
+      "and": [
+        {"==": [{"var": "answers.Q_PAY_01"}, "cash_only"]},
+        {"==": [{"var": "answers.Q_OPS_01"}, "paper_ledger"]}
+      ]
+    },
+    "triggered_recommendations": ["REC_UPI_01", "REC_WA_01", "REC_BOOK_01"],
+    "priority": 10,
+    "version": "1.0",
+    "is_active": true,
+    "rationale": "Business relies on cash transactions and paper-based accounting with no digital footprint.",
+    "created_by": "DigiMitra Research Team"
+  },
+  {
+    "code": "R_RBDL_L1_UPI_ADOPTED",
+    "name": "Basic Digital Presence and QR Payment Adoption",
+    "rbdl_level_target": 1,
+    "condition_expression": {
+      "or": [
+        {"==": [{"var": "answers.Q_PAY_01"}, "upi_qr"]},
+        {"==": [{"var": "answers.Q_PRES_01"}, "google_maps"]}
+      ]
+    },
+    "triggered_recommendations": ["REC_VYAPAR_01", "REC_CATALOG_01", "REC_ONDC_01"],
+    "priority": 20,
+    "version": "1.0",
+    "is_active": true,
+    "rationale": "Business has adopted digital payments (UPI) and/or basic local online visibility.",
+    "created_by": "DigiMitra Research Team"
+  },
+  {
+    "code": "R_RBDL_L2_OPS_DIGITIZED",
+    "name": "Operational & Process Digitalization",
+    "rbdl_level_target": 2,
+    "condition_expression": {
+      "and": [
+        {"!=": [{"var": "answers.Q_PAY_01"}, "cash_only"]},
+        {"==": [{"var": "answers.Q_OPS_01"}, "accounting_software"]}
+      ]
+    },
+    "triggered_recommendations": ["REC_CRM_01", "REC_STOCK_AUTO_01", "REC_ANALYTICS_01"],
+    "priority": 30,
+    "version": "1.0",
+    "is_active": true,
+    "rationale": "Business utilizes dedicated accounting/billing software and digital payments.",
+    "created_by": "DigiMitra Research Team"
+  },
+  {
+    "code": "R_RBDL_L3_ENTERPRISE_DATA",
+    "name": "Integrated & Data-Driven Digital Enterprise",
+    "rbdl_level_target": 3,
+    "condition_expression": {
+      "and": [
+        {"==": [{"var": "answers.Q_OPS_01"}, "integrated_erp"]},
+        {"==": [{"var": "answers.Q_PRES_01"}, "custom_website"]}
+      ]
+    },
+    "triggered_recommendations": ["REC_AI_DEMAND_01", "REC_MULTI_WH_01"],
+    "priority": 40,
+    "version": "1.0",
+    "is_active": true,
+    "rationale": "Enterprise uses cloud ERP and multi-channel fulfillment with real-time data sync.",
+    "created_by": "DigiMitra Research Team"
+  }
+]

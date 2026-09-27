@@ -1,0 +1,13 @@
+{
+  "title": "Digital Readiness Assessment",
+  "description": "Assess your business digitalization maturity across operations, payments, online presence, and analytics.",
+  "rbdl_levels": {
+    "level_0": "Level 0: Non-Digital / Traditional Paper-Based",
+    "level_1": "Level 1: Basic Digital Presence & Payment Integration",
+    "level_2": "Level 2: Operational & Process Digitalization",
+    "level_3": "Level 3: Integrated & Data-Driven Digital Enterprise"
+  },
+  "submit": "Submit Assessment",
+  "in_progress": "Assessment in progress",
+  "completed": "Assessment completed"
+}

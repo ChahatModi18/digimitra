@@ -1,0 +1,68 @@
+services:
+  # FastAPI Backend API
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: digimitra_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=mysql+aiomysql://digimitra_user:digimitra_secret_pass@mysql:3306/digimitra_db
+      - SECRET_KEY=digimitra-dev-insecure-secret-key-change-in-production-1234567890
+      - CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+      - LOG_LEVEL=INFO
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ../backend:/app
+
+  # React + Vite Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: digimitra_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  # MySQL 8.0 Database
+  mysql:
+    image: mysql:8.0
+    container_name: digimitra_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_secure_password
+      MYSQL_DATABASE: digimitra_db
+      MYSQL_USER: digimitra_user
+      MYSQL_PASSWORD: digimitra_secret_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "digimitra_user", "-pdigimitra_secret_pass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer Database Management Web UI
+  adminer:
+    image: adminer:latest
+    container_name: digimitra_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:

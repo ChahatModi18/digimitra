@@ -1,0 +1,10 @@
+{
+  "title": "Tailored Digitalization Recommendations",
+  "priority_high": "High Priority",
+  "priority_medium": "Medium Priority",
+  "priority_low": "Low Priority",
+  "cost_low": "Low Cost",
+  "cost_medium": "Medium Cost",
+  "cost_high": "High Cost",
+  "empty": "No recommendations available yet. Complete an assessment first."
+}

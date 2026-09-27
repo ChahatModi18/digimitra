@@ -1,0 +1,14 @@
+{
+  "app_name": "DigiMitra",
+  "tagline": "AI-Assisted Digital Consultant for Indian MSMEs",
+  "welcome": "Welcome to DigiMitra",
+  "health_ok": "System operational and ready",
+  "status": "Status",
+  "version": "Version",
+  "environment": "Environment",
+  "business_registration": "Business Registration",
+  "assessment": "Digital Readiness Assessment",
+  "roadmap": "Digitalization Roadmap",
+  "recommendations": "Recommendations",
+  "progress": "Progress Tracker"
+}

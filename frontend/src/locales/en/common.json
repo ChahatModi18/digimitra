@@ -1,0 +1,31 @@
+{
+  "brand": "DigiMitra",
+  "tagline": "AI-Assisted Digital Consultant for Indian MSMEs",
+  "navigation": {
+    "dashboard": "Dashboard",
+    "register": "Register Business",
+    "assessment": "Assessment",
+    "roadmap": "Roadmap",
+    "docs": "API Docs"
+  },
+  "hero": {
+    "badge": "Requirement-Based Digitalization Framework",
+    "title": "Empowering Local Indian Enterprises with Smart Digitalization",
+    "subtitle": "DigiMitra evaluates digital readiness, identifies custom digital gaps, and produces an actionable, cost-effective transformation roadmap tailored for Indian small & medium businesses.",
+    "cta_start": "Start Free Assessment",
+    "cta_explore": "Explore Framework"
+  },
+  "system_status": {
+    "title": "System Health & Diagnostics",
+    "api_status": "API Status",
+    "database": "Database Connectivity",
+    "uptime": "Uptime",
+    "version": "Build Version",
+    "latency": "Latency"
+  },
+  "actions": {
+    "refresh": "Refresh Status",
+    "view_docs": "View Swagger Docs",
+    "learn_more": "Learn More"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "title": "Digital Readiness Maturity Levels",
+  "subtitle": "DigiMitra classifies businesses into 4 structured stages (RBDL Levels 0–3):",
+  "level_0": {
+    "name": "Level 0: Non-Digital / Traditional",
+    "desc": "Manual paper records, cash-only transactions, no active digital footprint."
+  },
+  "level_1": {
+    "name": "Level 1: Basic Digital Presence",
+    "desc": "UPI/QR payments, WhatsApp Business, basic Google business listing."
+  },
+  "level_2": {
+    "name": "Level 2: Operational Digitalization",
+    "desc": "Digital billing & bookkeeping (Tally/Vyapar), inventory tracking, social commerce."
+  },
+  "level_3": {
+    "name": "Level 3: Integrated Digital Enterprise",
+    "desc": "Automated workflows, integrated ERP/CRM, multi-channel sales and data analytics."
+  }
+}
