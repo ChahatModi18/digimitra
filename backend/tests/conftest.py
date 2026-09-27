@@ -1,43 +1,34 @@
-"""Pytest configuration and test fixtures."""
+"""Pytest configuration and test fixtures using real MySQL 8.0."""
 
-import asyncio
 from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
-from app.db.base import Base
+from app.config import settings
 from app.db.session import get_db
 from app.main import app
-
-# Test database in memory
-TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
-
-test_engine = create_async_engine(TEST_DB_URL, echo=False)
-test_async_session = async_sessionmaker(
-    bind=test_engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
 
 
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Create isolated database schema per test function."""
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    async with test_async_session() as session:
+    """Provide an isolated database session against real MySQL with per-test connection."""
+    engine = create_async_engine(settings.DATABASE_URL, echo=False, poolclass=NullPool)
+    session_factory = async_sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    async with session_factory() as session:
         yield session
-
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
 
 
 @pytest_asyncio.fixture(scope="function")
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """HTTP async client with test DB override."""
+    """HTTP async client with real MySQL test session override."""
 
     async def override_get_db():
         yield db_session

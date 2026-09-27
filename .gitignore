@@ -67,6 +67,7 @@ desktop.ini
 *.log
 *.sqlite
 *.sqlite3
+*.db
 backend/app.db
 backend/test.db
 
