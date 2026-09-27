@@ -5,7 +5,7 @@ import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { Dashboard } from "./pages/Dashboard";
 import { BusinessRegistration } from "./pages/BusinessRegistration";
-import { AssessmentPlaceholder } from "./pages/AssessmentPlaceholder";
+import { AssessmentFlow } from "./pages/AssessmentFlow";
 import { RoadmapPlaceholder } from "./pages/RoadmapPlaceholder";
 
 const queryClient = new QueryClient({
@@ -27,7 +27,7 @@ export const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/register" element={<BusinessRegistration />} />
-              <Route path="/assessment" element={<AssessmentPlaceholder />} />
+              <Route path="/assessment" element={<AssessmentFlow />} />
               <Route path="/roadmap" element={<RoadmapPlaceholder />} />
             </Routes>
           </main>

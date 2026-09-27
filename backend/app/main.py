@@ -33,6 +33,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("Database tables initialized successfully.")
 
+    # 3. Seed initial question bank and rules idempotently
+    try:
+        from app.db.session import async_session_factory
+        from app.domain.rbdl.seeder import seed_all_a3_data
+        async with async_session_factory() as session:
+            await seed_all_a3_data(session)
+    except Exception as e:
+        logger.warning("Initial data seeder note: %s", e)
+
     yield
 
     # 3. Shutdown: dispose DB connection pool
