@@ -6,6 +6,7 @@ export * from "./layout/Section";
 export * from "./Navbar";
 export * from "./Footer";
 export * from "./LanguageSwitcher";
+export * from "./ThemeSwitcher";
 
 // Core UI Primitives
 export * from "./ui/Button";
@@ -23,7 +24,13 @@ export * from "./ui/ErrorState";
 
 // Domain & Workflow Primitives
 export * from "./domain/LevelCard";
+export * from "./domain/LevelBadge";
+export * from "./domain/LevelProgressBar";
+export * from "./domain/ProgressRing";
 export * from "./domain/DimensionCard";
+export * from "./domain/DimensionScoreBarChart";
 export * from "./domain/RecommendationCard";
 export * from "./domain/TaskCard";
 export * from "./domain/EvidenceCard";
+export * from "./domain/MsmeClassificationCalculator";
+

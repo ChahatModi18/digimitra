@@ -11,7 +11,9 @@ import {
   History,
 } from "lucide-react";
 import { LanguageSwitcher } from "../LanguageSwitcher";
+import { ThemeSwitcher } from "../ThemeSwitcher";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useQuery } from "@tanstack/react-query";
 import { fetchBusinesses } from "../../api/businesses";
 
@@ -23,6 +25,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const { user, activeBusinessId, setActiveBusinessId } = useAuth();
+  const { theme } = useTheme();
 
   const { data: businesses = [] } = useQuery({
     queryKey: ["businesses"],
@@ -45,7 +48,10 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {/* Top Logo & Brand */}
         <div className="p-6 border-b border-[#EDE2D8]">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0592A] text-white shadow-md shadow-[#F0592A]/25 group-hover:scale-105 transition-transform">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md group-hover:scale-105 transition-transform"
+              style={{ backgroundColor: theme.primaryHex }}
+            >
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
@@ -70,21 +76,32 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
+                style={
+                  isActive
+                    ? {
+                        backgroundColor: theme.primaryLightHex,
+                        color: theme.primaryHex,
+                      }
+                    : undefined
+                }
                 className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all ${
                   isActive
-                    ? "bg-[#FFE8DE] text-[#F0592A] font-bold shadow-xs"
-                    : "text-[#6B5D52] hover:text-[#241C15] hover:bg-[#FFF4ED]"
+                    ? "font-bold shadow-xs"
+                    : "text-[#6B5D52] hover:text-[#241C15] hover:bg-stone-50"
                 }`}
               >
-                <Icon className={`h-5 w-5 ${isActive ? "text-[#F0592A]" : "text-[#9C8F84]"}`} />
+                <Icon
+                  className="h-5 w-5 transition-colors"
+                  style={isActive ? { color: theme.primaryHex } : undefined}
+                />
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* User / Enterprise Switcher Pinned at Bottom */}
-        <div className="p-4 border-t border-[#EDE2D8] bg-[#FFF4ED]/40 space-y-3">
+        {/* Bottom Panel: Enterprise Switcher, Theme Switcher, Language & Account */}
+        <div className="p-4 border-t border-[#EDE2D8] bg-stone-50/60 space-y-3">
           {businesses.length > 0 && (
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-[#9C8F84] tracking-wider block">
@@ -93,7 +110,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <select
                 value={activeBusinessId || ""}
                 onChange={(e) => setActiveBusinessId(Number(e.target.value))}
-                className="w-full bg-white text-xs font-bold text-[#241C15] rounded-lg px-2.5 py-2 border border-[#EDE2D8] focus:outline-none focus:border-[#F0592A]"
+                className="w-full bg-white text-xs font-bold text-[#241C15] rounded-lg px-2.5 py-2 border border-[#EDE2D8] focus:outline-none focus:border-orange-500"
               >
                 {businesses.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -104,14 +121,22 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-1">
+          {/* Theme Palette Switcher */}
+          <div className="space-y-1">
+            <label className="text-[10px] uppercase font-bold text-[#9C8F84] tracking-wider block">
+              MSME Color Theme
+            </label>
+            <ThemeSwitcher />
+          </div>
+
+          <div className="flex items-center justify-between pt-1 border-t border-stone-200/60">
             <LanguageSwitcher />
 
             <Link
               to="/auth"
               className="flex items-center gap-1.5 text-xs font-semibold text-[#6B5D52] hover:text-[#241C15] px-2 py-1 rounded-lg hover:bg-white transition"
             >
-              <User className="w-3.5 h-3.5 text-[#F0592A]" />
+              <User className="w-3.5 h-3.5" style={{ color: theme.primaryHex }} />
               <span className="truncate max-w-[80px]">
                 {user ? user.full_name?.split(" ")[0] || "Account" : "Login"}
               </span>
@@ -125,17 +150,25 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         {/* Mobile Top Header */}
         <header className="lg:hidden sticky top-0 z-30 flex h-14 items-center justify-between px-4 bg-white border-b border-[#EDE2D8] shadow-xs">
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F0592A] text-white shadow-xs">
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-white shadow-xs"
+              style={{ backgroundColor: theme.primaryHex }}
+            >
               <Sparkles className="h-4 w-4" />
             </div>
             <span className="text-lg font-bold font-heading text-[#241C15]">DigiMitra</span>
           </Link>
 
           <div className="flex items-center gap-2">
+            <ThemeSwitcher compact={true} />
             <LanguageSwitcher />
             <Link
               to="/auth"
-              className="p-2 rounded-lg bg-[#FFF4ED] text-[#F0592A] font-semibold text-xs flex items-center gap-1"
+              className="p-2 rounded-lg font-semibold text-xs flex items-center gap-1"
+              style={{
+                backgroundColor: theme.primaryLightHex,
+                color: theme.primaryHex,
+              }}
             >
               <User className="w-4 h-4" />
             </Link>
@@ -156,11 +189,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
               <Link
                 key={item.path}
                 to={item.path}
+                style={isActive ? { color: theme.primaryHex } : undefined}
                 className={`flex flex-col items-center justify-center flex-1 h-full py-1 text-[10px] font-semibold transition ${
-                  isActive ? "text-[#F0592A] font-bold" : "text-[#9C8F84] hover:text-[#6B5D52]"
+                  isActive ? "font-bold" : "text-[#9C8F84] hover:text-[#6B5D52]"
                 }`}
               >
-                <Icon className={`h-5 w-5 mb-0.5 ${isActive ? "text-[#F0592A]" : "text-[#9C8F84]"}`} />
+                <Icon
+                  className="h-5 w-5 mb-0.5"
+                  style={isActive ? { color: theme.primaryHex } : undefined}
+                />
                 <span className="truncate max-w-[64px]">{item.label}</span>
               </Link>
             );

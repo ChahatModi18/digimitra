@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Sparkles,
@@ -11,17 +11,25 @@ import {
   Building2,
   Smartphone,
   ChevronRight,
+  Calculator,
+  Palette,
 } from "lucide-react";
 import { Badge } from "../components/ui/Badge";
 import { LevelCard } from "../components/domain/LevelCard";
 import { DimensionCard } from "../components/domain/DimensionCard";
 import { Section } from "../components/layout/Section";
 import { HealthCard } from "../components/HealthCard";
+import { MsmeClassificationCalculator } from "../components/domain/MsmeClassificationCalculator";
+import { useTheme, MsmeThemeId } from "../context/ThemeContext";
+import { MSME_SECTORS } from "../data/msmeTaxonomy";
 
 export const Dashboard: React.FC = () => {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
   const currentLang = (i18n?.language?.startsWith("hi") ? "hi" : "en") as "en" | "hi";
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [showCalculatorSection, setShowCalculatorSection] = useState(false);
+  const { theme, themeId, setThemeId, availableThemes } = useTheme();
 
   const rbdlLevels = [
     {
@@ -159,34 +167,42 @@ export const Dashboard: React.FC = () => {
     },
   ];
 
-  const businessSectors = [
-    "Retail & Kirana Stores",
-    "Textiles & Handloom Sarees",
-    "Restaurants & Sweet Shops",
-    "Clinics & Pharmacies",
-    "Light Manufacturing & Workshops",
-    "Beauty Parlours & Salons",
-    "Hardware & Electricals",
-    "Wholesale & Trade",
-    "Automotive Repair Shops",
-    "Professional & Legal Services",
-    "Jewellery & Handicrafts",
-    "Electronics & Mobile Sales",
-  ];
-
   return (
     <div className="space-y-12 sm:space-y-16 pb-16 animate-fadeIn">
-      {/* 1. High-Energy Vibrant Brand Hero Banner (Swiggy Product Style) */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#F0592A] via-[#FF6B35] to-[#F0592A] text-white p-6 sm:p-10 lg:p-12 shadow-xl">
+      {/* 1. High-Energy Vibrant Brand Hero Banner (Dynamic MSME Color Theme Engine) */}
+      <section
+        className={`relative overflow-hidden rounded-3xl bg-gradient-to-r ${theme.heroGradient} text-white p-6 sm:p-10 lg:p-12 shadow-xl transition-all duration-500`}
+      >
         {/* Subtle decorative background circles */}
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
         <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6">
-          {/* Top Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider border border-white/30">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Requirement-Based Digitalization (RBDL)</span>
+          {/* Top Badges & MSME Theme Palette Switcher */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold uppercase tracking-wider border border-white/30">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Requirement-Based Digitalization (RBDL)</span>
+            </div>
+
+            {/* Live Theme Swatch Pills */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-xs font-medium text-white/90">
+              <Palette className="w-3.5 h-3.5 text-white/80 mr-1" />
+              <span className="text-[11px] hidden sm:inline">Theme:</span>
+              {availableThemes.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setThemeId(t.id as MsmeThemeId)}
+                  title={currentLang === "hi" ? t.nameHi : t.nameEn}
+                  className={`w-4 h-4 rounded-full border transition-all ${
+                    themeId === t.id
+                      ? "border-white scale-125 shadow-md"
+                      : "border-white/40 opacity-70 hover:opacity-100"
+                  }`}
+                  style={{ backgroundColor: t.primaryHex }}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Main Headline */}
@@ -205,7 +221,10 @@ export const Dashboard: React.FC = () => {
           {/* Interactive Fast-Action Search & Selection Bar */}
           <div className="max-w-2xl mx-auto bg-white rounded-2xl p-2 shadow-2xl flex flex-col sm:flex-row items-center gap-2">
             <div className="flex items-center gap-2 px-3 py-2 w-full sm:w-auto text-[#241C15] font-bold text-xs sm:text-sm border-b sm:border-b-0 sm:border-r border-[#EDE2D8]">
-              <Building2 className="w-4 h-4 text-[#F0592A] shrink-0" />
+              <Building2
+                className="w-4 h-4 shrink-0"
+                style={{ color: theme.primaryHex }}
+              />
               <span className="truncate">Sharma Silk Sarees, Jaipur</span>
             </div>
 
@@ -214,8 +233,11 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <Link to="/assessment" className="w-full sm:w-auto shrink-0">
-              <button className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#F0592A] hover:bg-[#D94A1F] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
-                <span>Start Assessment</span>
+              <button
+                className="w-full sm:w-auto px-6 py-3 rounded-xl text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+                style={{ backgroundColor: theme.primaryHex }}
+              >
+                <span>{currentLang === "hi" ? "मूल्यांकन शुरू करें" : "Start Assessment"}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </Link>
@@ -235,16 +257,31 @@ export const Dashboard: React.FC = () => {
                 <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
                   14 QUESTIONS • 3 MINUTES
                 </p>
-                <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-[#FFE8DE] text-[#F0592A] text-[11px] font-extrabold uppercase">
+                <div
+                  className="mt-2 inline-block px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase"
+                  style={{
+                    backgroundColor: theme.primaryLightHex,
+                    color: theme.primaryHex,
+                  }}
+                >
                   100% FREE FOR MSMES
                 </div>
               </div>
 
               <div className="flex items-end justify-between pt-2">
-                <div className="w-10 h-10 rounded-full bg-[#F0592A] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <div
+                  className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
+                  style={{ backgroundColor: theme.primaryHex }}
+                >
                   <ArrowRight className="w-5 h-5" />
                 </div>
-                <div className="p-2.5 rounded-2xl bg-[#FFF4ED] text-[#F0592A]">
+                <div
+                  className="p-2.5 rounded-2xl"
+                  style={{
+                    backgroundColor: theme.bgSurfaceAltHex,
+                    color: theme.primaryHex,
+                  }}
+                >
                   <Smartphone className="w-8 h-8" />
                 </div>
               </div>
@@ -268,7 +305,10 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div className="flex items-end justify-between pt-2">
-                <div className="w-10 h-10 rounded-full bg-[#F0592A] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <div
+                  className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
+                  style={{ backgroundColor: theme.primaryHex }}
+                >
                   <ArrowRight className="w-5 h-5" />
                 </div>
                 <div className="p-2.5 rounded-2xl bg-[#DCF2EE] text-[#1B7A6E]">
@@ -295,7 +335,10 @@ export const Dashboard: React.FC = () => {
               </div>
 
               <div className="flex items-end justify-between pt-2">
-                <div className="w-10 h-10 rounded-full bg-[#F0592A] text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                <div
+                  className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
+                  style={{ backgroundColor: theme.primaryHex }}
+                >
                   <ArrowRight className="w-5 h-5" />
                 </div>
                 <div className="p-2.5 rounded-2xl bg-[#FBF1DD] text-[#C88A1D]">
@@ -307,7 +350,63 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. RBDL Journey (Levels 0–3 Cards) */}
+      {/* 2. Interactive MSME Turnover & Eligibility Checker Tool */}
+      <section className="p-6 sm:p-8 rounded-3xl bg-white border border-[#EDE2D8] shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span
+                className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider"
+                style={{
+                  backgroundColor: theme.primaryLightHex,
+                  color: theme.primaryHex,
+                }}
+              >
+                Interactive Tool
+              </span>
+              <span className="text-xs text-stone-500 font-semibold">
+                Ministry of MSME Standards
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#241C15] font-heading">
+              {currentLang === "hi"
+                ? "उद्यम टर्नओवर एवं पात्रता जांचें"
+                : "Check Your MSME Classification & Eligibility"}
+            </h2>
+            <p className="text-xs sm:text-sm text-[#6B5D52]">
+              {currentLang === "hi"
+                ? "कस्टम टर्नओवर दर्ज करें और जानें कि आपका व्यवसाय सूक्ष्म (Micro), लघु (Small), मध्यम (Medium) या बड़ा उद्यम है।"
+                : "Enter your enterprise turnover and investment to instantly verify official MSME status under Govt of India norms."}
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowCalculatorSection(!showCalculatorSection)}
+            className="px-4 py-2 rounded-xl text-xs font-bold border border-stone-300 hover:border-stone-400 bg-stone-50 text-stone-800 transition flex items-center gap-1.5 shrink-0"
+          >
+            <Calculator className="w-4 h-4 text-orange-600" />
+            <span>
+              {showCalculatorSection
+                ? currentLang === "hi"
+                  ? "टूल बंद करें"
+                  : "Close Tool"
+                : currentLang === "hi"
+                ? "टर्नओवर कैलकुलेटर खोलें"
+                : "Open Calculator"}
+            </span>
+          </button>
+        </div>
+
+        {showCalculatorSection && (
+          <div className="pt-2 animate-fadeIn">
+            <MsmeClassificationCalculator
+              onSelectCategory={() => navigate("/businesses")}
+            />
+          </div>
+        )}
+      </section>
+
+      {/* 3. RBDL Journey (Levels 0–3 Cards) */}
       <Section
         id="rbdl-journey"
         badge={
@@ -343,7 +442,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </Section>
 
-      {/* 3. Nine Digitalization Dimensions Grid */}
+      {/* 4. Nine Digitalization Dimensions Grid */}
       <Section
         badge={
           <Badge variant="success" size="sm" icon={<Zap className="w-3 h-3 mr-1" />}>
@@ -376,7 +475,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </Section>
 
-      {/* 4. How DigiMitra Works */}
+      {/* 5. How DigiMitra Works */}
       <Section
         badge={
           <Badge variant="warning" size="sm" icon={<Compass className="w-3 h-3 mr-1" />}>
@@ -400,7 +499,10 @@ export const Dashboard: React.FC = () => {
               key={s.step}
               className="p-6 rounded-2xl bg-white border border-[#EDE2D8] shadow-card space-y-3 relative group hover:border-[#F0592A] hover:shadow-lg transition"
             >
-              <span className="text-3xl font-black text-[#F0592A]/30 font-mono block">
+              <span
+                className="text-3xl font-black font-mono block opacity-30"
+                style={{ color: theme.primaryHex }}
+              >
                 {s.step}
               </span>
               <h3 className="text-base font-bold text-[#241C15] font-heading">
@@ -414,53 +516,77 @@ export const Dashboard: React.FC = () => {
         </div>
       </Section>
 
-      {/* 5. Enterprise Categories Supported (Swiggy Pill Grid Style) */}
+      {/* 6. Enterprise Categories Supported (Swiggy Pill Grid Style) */}
       <Section
-        title="MSME Sectors Supported Across India"
-        subtitle="Customized digital diagnostic rules for diverse local business models."
+        title={
+          currentLang === "hi"
+            ? "भारत भर के प्रमुख एमएसएमई क्षेत्र"
+            : "MSME Sectors Supported Across India"
+        }
+        subtitle={
+          currentLang === "hi"
+            ? "किराना, विनिर्माण, वस्त्र, हस्तशिल्प और सेवाओं के लिए अनुकूलित डिजिटल नियम।"
+            : "Customized digital diagnostic rules for diverse local business models."
+        }
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {businessSectors.map((sector, i) => (
+          {MSME_SECTORS.map((sector) => (
             <div
-              key={i}
-              className="p-3.5 rounded-xl bg-white border border-[#EDE2D8] text-xs font-bold text-[#241C15] flex items-center justify-between hover:border-[#F0592A] hover:shadow-xs transition cursor-pointer"
+              key={sector.id}
+              onClick={() => navigate("/businesses")}
+              className="p-3.5 rounded-xl bg-white border border-[#EDE2D8] text-xs font-bold text-[#241C15] flex items-center justify-between hover:border-orange-500 hover:shadow-xs transition cursor-pointer"
             >
-              <span className="truncate">{sector}</span>
+              <span className="truncate">
+                {currentLang === "hi" ? sector.nameHi : sector.nameEn.split("(")[0]}
+              </span>
               <ChevronRight className="w-3.5 h-3.5 text-[#9C8F84] shrink-0" />
             </div>
           ))}
         </div>
       </Section>
 
-      {/* 6. Call to Action Banner (Dark App Bar Style) */}
+      {/* 7. Call to Action Banner (Dark App Bar Style) */}
       <section className="p-8 sm:p-12 rounded-3xl bg-[#241C15] text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="space-y-3 text-center md:text-left max-w-lg">
           <div className="flex items-center justify-center md:justify-start gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#F0592A] flex items-center justify-center text-white font-bold text-xs">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs"
+              style={{ backgroundColor: theme.primaryHex }}
+            >
               ✦
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#F0592A]">
+            <span
+              className="text-xs font-bold uppercase tracking-wider"
+              style={{ color: theme.primaryHex }}
+            >
               Free AI Digital Consultant
             </span>
           </div>
           <h3 className="text-2xl sm:text-3xl font-bold font-heading text-white">
-            Ready to upgrade your enterprise?
+            {currentLang === "hi"
+              ? "क्या आप अपने व्यवसाय को अपग्रेड करने के लिए तैयार हैं?"
+              : "Ready to upgrade your enterprise?"}
           </h3>
           <p className="text-xs sm:text-sm text-[#9C8F84] leading-relaxed">
-            Take the 3-minute diagnostic assessment today to unlock your personalized transformation roadmap.
+            {currentLang === "hi"
+              ? "आज ही 3 मिनट का डिजिटल मूल्यांकन लें और अपना व्यक्तिगत रोडमैप अनलॉक करें।"
+              : "Take the 3-minute diagnostic assessment today to unlock your personalized transformation roadmap."}
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <Link to="/assessment" className="w-full sm:w-auto">
-            <button className="w-full px-6 py-3.5 rounded-xl bg-[#F0592A] hover:bg-[#D94A1F] text-white font-bold text-sm shadow-lg shadow-[#F0592A]/30 transition flex items-center justify-center gap-2">
-              <span>Start Free Assessment</span>
+            <button
+              className="w-full px-6 py-3.5 rounded-xl text-white font-bold text-sm shadow-lg transition flex items-center justify-center gap-2"
+              style={{ backgroundColor: theme.primaryHex }}
+            >
+              <span>{currentLang === "hi" ? "मुफ्त मूल्यांकन शुरू करें" : "Start Free Assessment"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </Link>
           <Link to="/businesses" className="w-full sm:w-auto">
             <button className="w-full px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition">
-              My Businesses
+              {currentLang === "hi" ? "मेरे उद्यम" : "My Businesses"}
             </button>
           </Link>
         </div>
@@ -473,7 +599,11 @@ export const Dashboard: React.FC = () => {
           className="inline-flex items-center gap-1.5 text-xs text-[#9C8F84] hover:text-[#6B5D52] transition font-medium"
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>{showDiagnostics ? "Hide System Health & Diagnostics" : "Show System Health & API Diagnostics"}</span>
+          <span>
+            {showDiagnostics
+              ? "Hide System Health & Diagnostics"
+              : "Show System Health & API Diagnostics"}
+          </span>
         </button>
 
         {showDiagnostics && (
