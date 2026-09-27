@@ -285,3 +285,59 @@ def test_boundary_precision_cases():
     )
     res_6_0 = RBDLClassifierEngine.classify(scoring_6_0, {}, {}, {"category_id": 1})
     assert res_6_0.rbdl_level == 3  # 6.0 >= 6.0 -> achieves Level 3
+
+
+def test_incomplete_assessment_missing_gating_question_evidence():
+    """Verify missing gating question is NOT treated as N/A, keeps is_complete=False, triggers Certainty LOW, and records missing requirement in evidence."""
+    # Q-INFRA-01 is missing (unanswered), Q-INFRA-02 has score 3.0
+    # infra score = 3.0 / 6.0 * 10 = 5.0, but missing_count = 1
+    q1 = {"id": 1, "dimension_code": "infra", "question_type": "single_choice", "options": [{"id": 10, "option_code": "O1", "score_value": 3.0}]}
+    q2 = {"id": 2, "dimension_code": "infra", "question_type": "single_choice", "options": [{"id": 20, "option_code": "O2", "score_value": 3.0}]}
+
+    answers = {
+        2: {"selected_option_id": 20, "text_answer": None},  # Q2 answered, Q1 missing
+    }
+    scoring = ScoringEngine.calculate_scores([q1, q2], answers)
+    assert scoring.is_complete is False
+    assert scoring.total_missing == 1
+    assert scoring.total_na == 0
+
+    res = RBDLClassifierEngine.classify(scoring, {}, {}, {"category_id": 1})
+    assert res.is_complete is False
+    assert res.certainty.certainty_tier == CertaintyTier.LOW
+    assert any("incomplete" in r.lower() for r in res.certainty.reasons)
+
+
+def test_na_vs_category_exemption_strict_distinction():
+    """Verify N/A on inventory does NOT grant exemption to a retail business, but category exemption does."""
+    # Case A: Retail business (inventory applicable), but marks Q-INV-01 as N/A
+    # Inventory score is 0.0 because it was marked N/A (no answered positive score)
+    scoring_na = AssessmentScoringSummary(
+        dimension_scores={
+            "infra": 6.0, "literacy": 5.0, "presence": 5.0, "comms": 4.0,
+            "records": 5.0, "payments": 5.0, "inventory": 0.0,
+            "data_usage": 3.0, "growth": 3.0,
+        },
+        detailed_scores={},
+        composite_score=4.1,
+        total_answered=13,
+        total_na=1,
+        total_missing=0,
+        is_complete=True,
+    )
+    res_retail_na = RBDLClassifierEngine.classify(
+        scoring_na, {}, {}, {"category_id": 1, "category_name": "Retail & Trade", "is_inventory_exempt": False}
+    )
+    # Retail business must NOT get automatic exemption from an N/A answer
+    assert res_retail_na.rbdl_level == 1
+    assert any("inventory" in r.dimension_code for r in res_retail_na.blocking_requirements)
+    assert len(res_retail_na.category_exemptions) == 0
+
+    # Case B: Services / Consulting business (category legitimately exempt from inventory)
+    res_services_exempt = RBDLClassifierEngine.classify(
+        scoring_na, {}, {}, {"category_id": 3, "category_name": "Services & Consulting"}
+    )
+    # Service business gets legitimate category exemption
+    assert res_services_exempt.rbdl_level == 2
+    assert len(res_services_exempt.category_exemptions) > 0
+    assert any("Services/Consulting" in ex for ex in res_services_exempt.category_exemptions)
