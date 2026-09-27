@@ -75,7 +75,7 @@ class RecommendationRankingEngine:
 
     # Target level dimension thresholds per Claude C3
     TARGET_THRESHOLDS: Dict[int, Dict[str, float]] = {
-        1: {"infra": 4.0, "literacy": 3.0, "payments": 3.0},
+        1: {"infra": 4.0, "literacy": 3.0},
         2: {"presence": 4.0, "comms": 3.0, "records": 4.0, "payments": 4.0, "inventory": 3.0},
         3: {"payments": 6.0, "records": 6.0, "data_usage": 5.0, "growth": 4.0},
     }

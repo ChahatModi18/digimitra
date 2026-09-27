@@ -62,6 +62,5 @@ async def seed_recommendations_v1(db: AsyncSession) -> int:
             existing.default_priority = r_data.get("default_priority", 0)
             existing.is_active = True
 
-    if count > 0:
-        await db.commit()
+    await db.commit()
     return count

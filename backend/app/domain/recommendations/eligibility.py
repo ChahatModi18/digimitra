@@ -61,21 +61,54 @@ class RecommendationEligibilityEngine:
                 previously_completed=True,
             )
 
-        # 2. Enforce One-Level-Above Ceiling Rule
-        # Level 0 -> Target Level 1
-        # Level 1 -> Target Level 2
-        # Level 2 -> Target Level 3
-        # Level 3 -> Target Level 3 (optimization)
-        allowed_target_level = min(3, current_rbdl_level + 1)
-        if current_rbdl_level == 3:
-            allowed_target_level = 3
+        # 2. Enforce One-Level-Above Ceiling Rule & Level Scope
+        # Level 0 -> Target Level 1 (foundational readiness: infra_setup, literacy_training ONLY)
+        # Level 1 -> Target Level 2 (operational digitization: records, payments, inventory, presence, comms)
+        # Level 2 -> Target Level 3 (growth/data: data_usage, growth, records, payments)
+        # Level 3 -> No advancement recommendations
+        if current_rbdl_level >= 3:
+            return EligibilityEvaluationResult(
+                recommendation_code=code,
+                is_eligible=False,
+                rejection_reason=f"Business is at Level {current_rbdl_level}; no further advancement recommendations are in scope.",
+                level_ceiling_passed=False,
+                prerequisites_passed=False,
+                na_exclusion_passed=True,
+            )
 
+        allowed_target_level = current_rbdl_level + 1
         if target_level != allowed_target_level:
             return EligibilityEvaluationResult(
                 recommendation_code=code,
                 is_eligible=False,
                 rejection_reason=f"Violates one-level-above rule: Business is Level {current_rbdl_level}, but recommendation targets Level {target_level} (allowed target: Level {allowed_target_level}).",
                 level_ceiling_passed=False,
+                prerequisites_passed=False,
+                na_exclusion_passed=True,
+            )
+
+        # Enforce C4 Category and Dimension Scope by Level
+        category = recommendation.get("category", "")
+        allowed_categories_by_level: Dict[int, Set[str]] = {
+            0: {"infra_setup", "literacy_training"},
+            1: {"record_keeping", "payments", "inventory_ops", "online_presence", "customer_comms"},
+            2: {"data_analytics", "growth_expansion", "record_keeping", "payments"},
+        }
+        allowed_dimensions_by_level: Dict[int, Set[str]] = {
+            0: {"infra", "literacy"},
+            1: {"records", "payments", "inventory", "presence", "comms"},
+            2: {"data_usage", "growth", "records", "payments"},
+        }
+
+        allowed_cats = allowed_categories_by_level.get(current_rbdl_level, set())
+        allowed_dims = allowed_dimensions_by_level.get(current_rbdl_level, set())
+
+        if category not in allowed_cats or dim_code not in allowed_dims:
+            return EligibilityEvaluationResult(
+                recommendation_code=code,
+                is_eligible=False,
+                rejection_reason=f"Category '{category}' / Dimension '{dim_code}' is outside C4 scope for Level {current_rbdl_level}.",
+                level_ceiling_passed=True,
                 prerequisites_passed=False,
                 na_exclusion_passed=True,
             )
@@ -177,7 +210,7 @@ class RecommendationEligibilityEngine:
         # Level 2: presence >= 4.0, comms >= 3.0, records/payments >= 4.0, inventory >= 3.0
         # Level 3: payments >= 6.0, records >= 6.0, data_usage >= 5.0, growth >= 4.0
         thresholds = {
-            1: {"infra": 4.0, "literacy": 3.0, "payments": 3.0},
+            1: {"infra": 4.0, "literacy": 3.0},
             2: {"presence": 4.0, "comms": 3.0, "records": 4.0, "payments": 4.0, "inventory": 3.0},
             3: {"payments": 6.0, "records": 6.0, "data_usage": 5.0, "growth": 4.0},
         }

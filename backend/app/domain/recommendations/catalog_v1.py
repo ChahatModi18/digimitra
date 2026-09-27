@@ -47,6 +47,10 @@ RECOMMENDATIONS_V1: List[Dict[str, Any]] = [
         "reason_template_en": "Recommended because your Digital Literacy score ({actual_score}/10) is below the 3.0/10 required for Level 1 readiness.",
         "reason_template_hi": "यह सुझाव इसलिए दिया गया है क्योंकि आपका डिजिटल साक्षरता स्कोर ({actual_score}/10) स्तर 1 की तैयारी के लिए आवश्यक 3.0/10 से कम है।",
     },
+    # ------------------------------------------------------------
+    # LEVEL 2 TARGET RECOMMENDATIONS (for Level 1 MSMEs)
+    # Gating requirements: presence >= 4.0, comms >= 3.0, (records >= 4.0 OR payments >= 4.0), inventory >= 3.0 (unless exempt)
+    # ------------------------------------------------------------
     {
         "recommendation_code": "REC-PAY-01",
         "title_en": "Set Up Basic Merchant QR Code for Payments",
@@ -55,20 +59,15 @@ RECOMMENDATIONS_V1: List[Dict[str, Any]] = [
         "description_hi": "ग्राहकों से सीधे अपने बैंक खाते में त्वरित डिजिटल भुगतान स्वीकार करने के लिए काउंटर पर एक यूपीआई क्यूआर कोड स्टैंड लगाएं।",
         "category": "payments",
         "dimension_code": "payments",
-        "target_rbdl_level": 1,
+        "target_rbdl_level": 2,
         "estimated_cost_level": "low",
         "estimated_effort_level": "low",
         "impact_level": "high",
         "default_priority": 30,
-        "prerequisite_json": {">=": [{"var": "dimension_scores.infra"}, 2.0]},
-        "reason_template_en": "Recommended because setting up instant digital payments unlocks foundational digital transactions for your business.",
-        "reason_template_hi": "यह सुझाव इसलिए दिया गया है क्योंकि तत्काल डिजिटल भुगतान स्थापित करने से आपके व्यवसाय के लिए बुनियादी डिजिटल लेनदेन संभव होता है।",
+        "prerequisite_json": {">=": [{"var": "dimension_scores.infra"}, 3.0]},
+        "reason_template_en": "Recommended because setting up instant digital payments unlocks Level 2 operational digitization for your business.",
+        "reason_template_hi": "यह सुझाव इसलिए दिया गया है क्योंकि तत्काल डिजिटल भुगतान स्थापित करने से आपके व्यवसाय के लिए स्तर 2 परिचालन डिजिटलीकरण संभव होता है।",
     },
-
-    # ------------------------------------------------------------
-    # LEVEL 2 TARGET RECOMMENDATIONS (for Level 1 MSMEs)
-    # Gating requirements: presence >= 4.0, comms >= 3.0, (records >= 4.0 OR payments >= 4.0), inventory >= 3.0 (unless exempt)
-    # ------------------------------------------------------------
     {
         "recommendation_code": "REC-PRES-01",
         "title_en": "Create and Verify Google Business Profile",
