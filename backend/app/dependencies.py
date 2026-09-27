@@ -34,7 +34,7 @@ async def get_current_user(
     token: Optional[str] = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> Optional[User]:
-    """Dependency to extract authenticated user from JWT token."""
+    """Dependency to extract optional authenticated user from JWT token."""
     if not token:
         return None
     try:
@@ -51,11 +51,18 @@ async def get_current_user(
         raise AuthenticationException(f"Could not validate credentials: {exc}")
 
 
+async def get_authenticated_user(
+    current_user: Optional[User] = Depends(get_current_user),
+) -> User:
+    """Dependency that strictly requires an authenticated user."""
+    if not current_user:
+        raise AuthenticationException("Authentication required. Please provide a valid Bearer token.")
+    return current_user
+
+
 def require_roles(allowed_roles: List[UserRole]):
     """Role-Based Access Control dependency factory."""
-    async def role_checker(current_user: Optional[User] = Depends(get_current_user)) -> User:
-        if not current_user:
-            raise AuthenticationException("Authentication required.")
+    async def role_checker(current_user: User = Depends(get_authenticated_user)) -> User:
         check_role_permission(current_user.role, allowed_roles)
         return current_user
 
