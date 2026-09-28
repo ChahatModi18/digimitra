@@ -13,6 +13,7 @@ from app.api.v1.endpoints.domain_routers import (
     reports_router,
     admin_rules_router,
 )
+from app.api.v1.endpoints.research_ml import router as research_ml_router
 
 api_v1_router = APIRouter()
 
@@ -27,4 +28,6 @@ api_v1_router.include_router(roadmap_router)
 api_v1_router.include_router(progress_router)
 api_v1_router.include_router(reports_router)
 api_v1_router.include_router(admin_rules_router)
+api_v1_router.include_router(research_ml_router)
+
 
