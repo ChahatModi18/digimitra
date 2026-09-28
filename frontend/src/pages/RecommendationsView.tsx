@@ -175,26 +175,56 @@ export const RecommendationsView: React.FC = () => {
             }
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {filteredRecs.map((rec) => (
-                <RecommendationCard
-                  key={rec.id}
-                  code={rec.recommendation_code}
-                  titleEn={rec.title_en}
-                  titleHi={rec.title_hi}
-                  descriptionEn={rec.description_en}
-                  descriptionHi={rec.description_hi}
-                  reasonEn={rec.reason_en}
-                  reasonHi={rec.reason_hi}
-                  dimensionCode={rec.dimension_code}
-                  priorityScore={rec.priority_score}
-                  impactLevel={rec.impact_level}
-                  effortLevel={(rec as any).effort_level || rec.estimated_effort_level}
-                  costLevel={rec.estimated_cost_level}
-                  currentLang={currentLang}
-                  onAction={() => navigate("/roadmap")}
-                  actionLabel={currentLang === "hi" ? "रोडमैप में देखें →" : "View in Roadmap →"}
-                />
-              ))}
+              {filteredRecs.map((rec) => {
+                const targetCat = (() => {
+                  switch (rec.dimension_code?.toLowerCase()) {
+                    case "payments":
+                    case "banking":
+                      return "payments";
+                    case "records":
+                      return "accounting";
+                    case "presence":
+                    case "inventory":
+                      return "website";
+                    case "comms":
+                      return "marketing";
+                    case "literacy":
+                      return "training";
+                    case "infra":
+                    case "automation":
+                      return "infrastructure";
+                    case "security":
+                      return "security";
+                    default:
+                      return "";
+                  }
+                })();
+
+                return (
+                  <RecommendationCard
+                    key={rec.id}
+                    code={rec.recommendation_code}
+                    titleEn={rec.title_en}
+                    titleHi={rec.title_hi}
+                    descriptionEn={rec.description_en}
+                    descriptionHi={rec.description_hi}
+                    reasonEn={rec.reason_en}
+                    reasonHi={rec.reason_hi}
+                    dimensionCode={rec.dimension_code}
+                    priorityScore={rec.priority_score}
+                    impactLevel={rec.impact_level}
+                    effortLevel={(rec as any).effort_level || rec.estimated_effort_level}
+                    costLevel={rec.estimated_cost_level}
+                    currentLang={currentLang}
+                    onAction={() => navigate("/roadmap")}
+                    actionLabel={currentLang === "hi" ? "रोडमैप में देखें →" : "View in Roadmap →"}
+                    onExplore={() =>
+                      navigate(targetCat ? `/explore?category=${targetCat}` : "/explore")
+                    }
+                    exploreLabel={currentLang === "hi" ? "स्थानीय मदद खोजें" : "Find Local Help"}
+                  />
+                );
+              })}
             </div>
           </Section>
         </>

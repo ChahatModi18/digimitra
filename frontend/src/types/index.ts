@@ -27,9 +27,11 @@ export interface HealthResponse {
 export interface Business {
   id: number;
   name: string;
+  business_name?: string;
   sector: string;
   enterprise_size: "Micro" | "Small" | "Medium";
   state: string;
+  district?: string;
   city: string;
   pincode?: string;
   description?: string;

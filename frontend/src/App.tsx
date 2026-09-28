@@ -11,6 +11,7 @@ import { AssessmentFlow } from "./pages/AssessmentFlow";
 import { RecommendationsView } from "./pages/RecommendationsView";
 import { RoadmapView } from "./pages/RoadmapView";
 import { HistoryView } from "./pages/HistoryView";
+import { ExploreView } from "./pages/ExploreView";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,9 @@ export const App: React.FC = () => {
 
                   {/* 11. Assessment & Roadmap Version History */}
                   <Route path="/history" element={<HistoryView />} />
+
+                  {/* 12. Localized Service & Resource Discovery (A8) */}
+                  <Route path="/explore" element={<ExploreView />} />
 
                   {/* Fallback */}
                   <Route path="*" element={<Navigate to="/" replace />} />

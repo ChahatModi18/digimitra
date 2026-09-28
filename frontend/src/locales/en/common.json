@@ -9,6 +9,7 @@
     "recommendations": "Recommendations",
     "roadmap": "Roadmap & Tasks",
     "history": "History & Progress",
+    "explore": "Explore Services",
     "auth": "Account",
     "docs": "API Docs"
   },
@@ -86,6 +87,27 @@
     "uptime": "System Uptime",
     "version": "Catalog Version",
     "latency": "Response Latency"
+  },
+  "explore": {
+    "title": "Local Digital Services & MSME Support",
+    "subtitle": "Discover verified tools, local technology enablers, and government support centres near your enterprise.",
+    "search_placeholder": "Search services (e.g. UPI soundbox, GST billing, website, DIC centre)...",
+    "all_categories": "All Categories",
+    "select_business_prompt": "Showing recommendations for enterprise:",
+    "filter_state": "All States",
+    "filter_district": "District / City",
+    "suggested_badge": "Assessment Recommendation Focus",
+    "suggested_desc": "Based on your recent assessment gaps, these service categories will accelerate your roadmap progress.",
+    "official_badge": "Official Govt / MSME Resource",
+    "mock_badge": "Test Mock Data",
+    "empty_title": "No Local Digital Services Found",
+    "empty_desc": "No third-party digital providers are currently configured in this locality. You can explore official support via Udyam Assist and your local District Industries Centre (DIC).",
+    "open_portal": "Open Official Portal",
+    "view_service": "View Service",
+    "find_help_cta": "Find Local Help",
+    "status_unconfigured": "Live Provider Integration Unconfigured",
+    "status_unconfigured_desc": "DigiMitra is running in unconfigured mode. Real provider records will appear when localized provider APIs are enabled.",
+    "clear_filters": "Clear Filters"
   },
   "common": {
     "loading": "Loading...",

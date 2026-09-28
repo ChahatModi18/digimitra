@@ -66,7 +66,17 @@ When running locally, interactive OpenAPI Swagger and ReDoc documentation is ava
 
 ---
 
-## 6. Research & ML Classification Pipeline (C5 / A7)
+## 6. Location Services & Business Discovery (A8)
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/explore/categories` | Public / Authenticated | Fetch 8 canonical service discovery categories and RBDL dimension mappings in English and Hindi. |
+| `GET` | `/api/v1/explore/services` | Public / Authenticated | Search and filter localized digital service providers and support centres (supports `category`, `search`, `state`, `district`, `city`, `pincode`, `business_id`, `page`, `page_size`, `test_mock`). |
+| `GET` | `/api/v1/explore/services/{id}` | Public / Authenticated | Retrieve details for a specific service provider or official MSME support centre. |
+
+---
+
+## 7. Research & ML Classification Pipeline (C5 / A7)
 
 *Restricted strictly to `admin` and `researcher` roles. Structurally isolated from production write paths.*
 
@@ -77,8 +87,9 @@ When running locally, interactive OpenAPI Swagger and ReDoc documentation is ava
 
 ---
 
-## 7. Administrative Rules & Diagnostic Tools
+## 8. Administrative Rules & Diagnostic Tools
 
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | `GET` | `/api/v1/admin/rules` | Admin | Inspect active RBDL classification rules, gating thresholds, and conditions. |
+

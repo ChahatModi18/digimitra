@@ -19,6 +19,8 @@ export interface RecommendationCardProps {
   currentLang?: string;
   onAction?: () => void;
   actionLabel?: string;
+  onExplore?: () => void;
+  exploreLabel?: string;
   className?: string;
 }
 
@@ -38,6 +40,8 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   currentLang = "en",
   onAction,
   actionLabel,
+  onExplore,
+  exploreLabel,
   className = "",
 }) => {
   const title = currentLang === "hi" ? titleHi : titleEn;
@@ -133,17 +137,30 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
           </div>
         </div>
 
-        {onAction && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAction}
-            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-            className="w-full"
-          >
-            {actionLabel || (currentLang === "hi" ? "विवरण देखें" : "View Details")}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onExplore && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onExplore}
+              className="flex-1 border-orange-200 text-orange-800 hover:bg-orange-50"
+            >
+              {exploreLabel || (currentLang === "hi" ? "स्थानीय मदद खोजें" : "Find Local Help")}
+            </Button>
+          )}
+
+          {onAction && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onAction}
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              className={onExplore ? "flex-1" : "w-full"}
+            >
+              {actionLabel || (currentLang === "hi" ? "विवरण देखें" : "View Details")}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

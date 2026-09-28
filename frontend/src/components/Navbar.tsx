@@ -9,6 +9,7 @@ import {
   Compass,
   User,
   History,
+  Search,
   Menu,
   X,
 } from "lucide-react";
@@ -28,6 +29,7 @@ export const Navbar: React.FC = () => {
     { path: "/recommendations", label: t("navigation.recommendations"), icon: Sparkles },
     { path: "/roadmap", label: t("navigation.roadmap"), icon: Compass },
     { path: "/history", label: t("navigation.history"), icon: History },
+    { path: "/explore", label: t("navigation.explore"), icon: Search },
   ];
 
   return (
