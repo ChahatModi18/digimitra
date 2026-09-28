@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    JSON,
     SmallInteger,
     String,
     Text,
@@ -46,7 +47,13 @@ class ConsultantBlindLabel(Base):
     labeling_protocol_version: Mapped[str] = mapped_column(
         String(20), default="1.0", nullable=False
     )
+    labeled_business_goal: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    labeled_primary_pain_point: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    labeled_budget_tier: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    labeled_urgency: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
     rationales: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    recommendation_ratings_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
     labeled_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),

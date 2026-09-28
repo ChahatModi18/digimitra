@@ -15,6 +15,7 @@ from app.models.progress_log import ProgressLog
 from app.models.ml import MLModel, MLPrediction
 from app.models.research import ResearchEvaluationRecord
 from app.models.consultant_label import ConsultantBlindLabel
+from app.models.requirement_profile import RequirementProfile
 from app.models.audit_log import AuditLog
 
 __all__ = [
@@ -43,5 +44,7 @@ __all__ = [
     "MLPrediction",
     "ResearchEvaluationRecord",
     "ConsultantBlindLabel",
+    "RequirementProfile",
     "AuditLog",
 ]
+

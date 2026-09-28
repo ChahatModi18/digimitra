@@ -67,10 +67,14 @@ class BusinessRecommendationRead(BaseModel):
     reason_en: Optional[str] = None
     reason_hi: Optional[str] = None
     evidence_json: Optional[Dict[str, Any]] = None
+    traceability_json: Optional[Dict[str, Any]] = None
     status: str
+    feasibility_status: str = "FEASIBLE_NOW"
+    budget_fit: Optional[str] = None
     generated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 
 class BusinessRecommendationsResponse(BaseModel):

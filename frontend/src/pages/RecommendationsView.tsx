@@ -215,9 +215,13 @@ export const RecommendationsView: React.FC = () => {
                     impactLevel={rec.impact_level}
                     effortLevel={(rec as any).effort_level || rec.estimated_effort_level}
                     costLevel={rec.estimated_cost_level}
+                    feasibilityStatus={rec.feasibility_status}
+                    budgetFit={rec.budget_fit}
+                    traceabilityJson={rec.traceability_json}
                     currentLang={currentLang}
                     onAction={() => navigate("/roadmap")}
                     actionLabel={currentLang === "hi" ? "रोडमैप में देखें →" : "View in Roadmap →"}
+
                     onExplore={() =>
                       navigate(targetCat ? `/explore?category=${targetCat}` : "/explore")
                     }

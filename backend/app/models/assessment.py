@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from app.models.ml import MLPrediction
     from app.models.research import ResearchEvaluationRecord
     from app.models.consultant_label import ConsultantBlindLabel
+    from app.models.requirement_profile import RequirementProfile
 
 
 class Assessment(Base, TimestampMixin):
@@ -103,6 +104,10 @@ class Assessment(Base, TimestampMixin):
     consultant_labels: Mapped[List["ConsultantBlindLabel"]] = relationship(
         "ConsultantBlindLabel", back_populates="assessment", cascade="all, delete-orphan"
     )
+    requirement_profile: Mapped[Optional["RequirementProfile"]] = relationship(
+        "RequirementProfile", back_populates="assessment", uselist=False, cascade="all, delete-orphan"
+    )
+
 
 
 class AssessmentAnswer(Base):

@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.domain.recommendations.eligibility import RecommendationEligibilityEngine
+from app.domain.recommendations.feasibility import RecommendationFeasibilityEngine
 from app.domain.recommendations.ranking import RecommendationRankingEngine, RankedRecommendation
 from app.domain.recommendations.reasons import RecommendationReasonGenerator
 from app.domain.recommendations.roadmap_generator import RoadmapGeneratorEngine, PhasedRoadmapResult
@@ -83,9 +84,11 @@ class RecommendationService:
                 selectinload(Assessment.business).selectinload(Business.category),
                 selectinload(Assessment.classification_results),
                 selectinload(Assessment.scores),
+                selectinload(Assessment.requirement_profile),
             )
             .where(Assessment.id == assessment_id)
         )
+
         res = await db.execute(stmt)
         assessment = res.scalar_one_or_none()
 
@@ -212,10 +215,33 @@ class RecommendationService:
                 BusinessRecommendation.classification_result_id == primary_cr.id
             )
         )
+        # Prepare requirement profile context dictionary if present
+        req_profile_dict = None
+        if assessment.requirement_profile:
+            req_profile_dict = {
+                "business_goal": assessment.requirement_profile.business_goal,
+                "primary_pain_point": assessment.requirement_profile.primary_pain_point,
+                "urgency": assessment.requirement_profile.urgency,
+                "budget_tier": assessment.requirement_profile.budget_tier,
+                "existing_tools": assessment.requirement_profile.existing_tools or [],
+                "preferred_solution_type": assessment.requirement_profile.preferred_solution_type,
+            }
+
         for ranked_item in ranked_recs:
             db_rec = recs_by_code.get(ranked_item.recommendation_code)
             if db_rec:
                 b = ranked_item.priority_breakdown
+                rec_dict_for_feasibility = {
+                    "recommendation_code": ranked_item.recommendation_code,
+                    "estimated_cost_level": ranked_item.estimated_cost_level,
+                    "dimension_code": ranked_item.dimension_code,
+                }
+                feasibility_eval = RecommendationFeasibilityEngine.evaluate_feasibility(
+                    recommendation=rec_dict_for_feasibility,
+                    requirement_profile=req_profile_dict,
+                    dimension_scores=dim_scores,
+                    target_rbdl_level=target_rbdl_level,
+                )
                 biz_rec = BusinessRecommendation(
                     business_id=business.id,
                     classification_result_id=primary_cr.id,
@@ -233,10 +259,14 @@ class RecommendationService:
                         "dimension_code": ranked_item.dimension_code,
                         "actual_dimension_score": dim_scores.get(ranked_item.dimension_code, 0.0),
                     },
+                    traceability_json=feasibility_eval.traceability_chain,
                     status="suggested",
+                    feasibility_status=feasibility_eval.feasibility_status,
+                    budget_fit=feasibility_eval.budget_fit,
                     generated_at=datetime.now(timezone.utc).replace(tzinfo=None),
                 )
                 db.add(biz_rec)
+
 
         # 8. Phased Roadmap Generation
         phased_result = RoadmapGeneratorEngine.generate_roadmap(
@@ -389,10 +419,14 @@ class RecommendationService:
                     reason_en=br.reason_en,
                     reason_hi=br.reason_hi,
                     evidence_json=br.evidence_json,
+                    traceability_json=br.traceability_json,
                     status=br.status,
+                    feasibility_status=br.feasibility_status or "FEASIBLE_NOW",
+                    budget_fit=br.budget_fit,
                     generated_at=br.generated_at,
                 )
             )
+
 
         return BusinessRecommendationsResponse(
             business_id=business_id,

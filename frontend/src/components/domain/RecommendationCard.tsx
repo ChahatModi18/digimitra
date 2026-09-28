@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { Badge } from "../ui/Badge";
+
 import { Button } from "../ui/Button";
 import { RequirementDetailsModal } from "./RequirementDetailsModal";
 
@@ -17,6 +18,9 @@ export interface RecommendationCardProps {
   impactLevel?: string;
   effortLevel?: string;
   costLevel?: string;
+  feasibilityStatus?: string;
+  budgetFit?: string;
+  traceabilityJson?: Record<string, any>;
   currentLang?: string;
   onAction?: () => void;
   actionLabel?: string;
@@ -38,6 +42,9 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   impactLevel = "medium",
   effortLevel = "medium",
   costLevel = "low",
+  feasibilityStatus = "FEASIBLE_NOW",
+  budgetFit,
+  traceabilityJson,
   currentLang = "en",
   onAction,
   actionLabel,
@@ -56,14 +63,40 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
     high: { color: "bg-rose-50 text-rose-700 border-rose-200", labelEn: "High", labelHi: "उच्च" },
   };
 
+  const feasibilityBadges: Record<string, { labelEn: string; labelHi: string; color: string }> = {
+    FEASIBLE_NOW: {
+      labelEn: "Feasible Now",
+      labelHi: "तुरंत संभव",
+      color: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    },
+    LOWER_COST_ALTERNATIVE: {
+      labelEn: "Low-Cost Alt",
+      labelHi: "कम लागत विकल्प",
+      color: "bg-blue-50 text-blue-700 border-blue-200",
+    },
+    DEFER_DUE_TO_BUDGET: {
+      labelEn: "Budget Deferred",
+      labelHi: "बजट स्थगित",
+      color: "bg-amber-50 text-amber-700 border-amber-200",
+    },
+    ALREADY_HAVE: {
+      labelEn: "Already Adopted",
+      labelHi: "पहले से उपलब्ध",
+      color: "bg-purple-50 text-purple-700 border-purple-200",
+    },
+  };
+
+  const feasibilityBadgeInfo =
+    feasibilityBadges[feasibilityStatus] || feasibilityBadges["FEASIBLE_NOW"];
+
   return (
     <div
       className={`p-6 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between space-y-5 transition-all duration-300 hover:border-orange-300 hover:shadow-card-hover hover:-translate-y-1 ${className}`}
     >
       <div className="space-y-3">
-        {/* Top bar: Code, Priority, Dimension */}
+        {/* Top bar: Code, Feasibility Status, Dimension, Priority */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[10px] font-mono uppercase font-extrabold px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">
               {code}
             </span>
@@ -72,6 +105,11 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
                 {dimensionCode}
               </span>
             )}
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded border ${feasibilityBadgeInfo.color}`}
+            >
+              {currentLang === "hi" ? feasibilityBadgeInfo.labelHi : feasibilityBadgeInfo.labelEn}
+            </span>
           </div>
 
           {priorityScore !== undefined && (
@@ -179,6 +217,9 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
           reasonHi={reasonHi}
           dimensionCode={dimensionCode}
           priorityScore={priorityScore}
+          feasibilityStatus={feasibilityStatus}
+          budgetFit={budgetFit}
+          traceabilityJson={traceabilityJson}
           currentLang={currentLang as "en" | "hi"}
         />
       )}

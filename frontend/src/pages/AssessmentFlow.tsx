@@ -36,8 +36,16 @@ import {
 } from "../components";
 import { LevelBadge } from "../components/domain/LevelBadge";
 import { LevelProgressBar } from "../components/domain/LevelProgressBar";
+
 import { DimensionScoreBarChart } from "../components/domain/DimensionScoreBarChart";
 import { ResearchDisclosureBanner } from "../components/domain/ResearchDisclosureBanner";
+import { RequirementProfilingSection } from "../components/domain/RequirementProfilingSection";
+import {
+  fetchRequirementTaxonomies,
+  saveRequirementProfile,
+  BusinessRequirementProfile,
+} from "../api/requirements";
+
 
 export const AssessmentFlow: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -49,9 +57,16 @@ export const AssessmentFlow: React.FC = () => {
 
   const [currentAssessmentId, setCurrentAssessmentId] = useState<number | null>(null);
   const [answersState, setAnswersState] = useState<Record<number, AnswerSubmissionItem>>({});
+  const [requirementProfileState, setRequirementProfileState] = useState<Partial<BusinessRequirementProfile>>({
+    business_goal: "G1_CUSTOMER_REACH",
+    primary_pain_point: "P1_FIND_CONTACT",
+    urgency: "U2_WITHIN_6_MONTHS",
+    budget_tier: "B1_LOW",
+    existing_tools: ["TOOL_NONE"],
+  });
   const [classificationResult, setClassificationResult] = useState<ClassificationResult | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [activeStep, setActiveStep] = useState<"intro" | "questionnaire" | "result">("intro");
+  const [activeStep, setActiveStep] = useState<"intro" | "questionnaire" | "requirements" | "result">("intro");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 
   // 1. Fetch user's registered businesses
@@ -59,6 +74,14 @@ export const AssessmentFlow: React.FC = () => {
     queryKey: ["businesses"],
     queryFn: fetchBusinesses,
   });
+
+  // 1b. Fetch controlled research instrument taxonomies
+  const { data: taxonomiesData } = useQuery({
+    queryKey: ["requirementTaxonomies"],
+    queryFn: fetchRequirementTaxonomies,
+  });
+  const taxonomies = taxonomiesData?.data;
+
 
   // Auto-select active business
   useEffect(() => {
@@ -119,21 +142,35 @@ export const AssessmentFlow: React.FC = () => {
     },
   });
 
-  // Save Answers Mutation
+  // Save Answers & Profile Mutation
   const saveMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const payload: AnswerSubmissionItem[] = Object.values(answersState);
-      return saveAssessmentAnswers(currentAssessmentId!, payload, currentLang);
+      if (payload.length > 0) {
+        await saveAssessmentAnswers(currentAssessmentId!, payload, currentLang);
+      }
+      if (currentAssessmentId && activeBusinessId) {
+        await saveRequirementProfile({
+          assessment_id: currentAssessmentId,
+          business_id: activeBusinessId,
+          business_goal: requirementProfileState.business_goal || "G1_CUSTOMER_REACH",
+          primary_pain_point: requirementProfileState.primary_pain_point || "P1_FIND_CONTACT",
+          urgency: requirementProfileState.urgency || "U2_WITHIN_6_MONTHS",
+          budget_tier: requirementProfileState.budget_tier || "B1_LOW",
+          existing_tools: requirementProfileState.existing_tools || ["TOOL_NONE"],
+          preferred_solution_type: requirementProfileState.preferred_solution_type,
+        });
+      }
     },
     onSuccess: () => {
       setStatusMessage(
         currentLang === "en"
-          ? "Draft answers saved successfully."
-          : "प्रश्नों के उत्तर सफलतापूर्वक सहेज लिए गए हैं।"
+          ? "Draft answers and requirement profile saved successfully."
+          : "प्रश्नों के उत्तर और व्यावसायिक आवश्यकताएं सहेज ली गई हैं।"
       );
     },
     onError: (err: any) => {
-      setStatusMessage(err?.response?.data?.message || "Failed to save answers.");
+      setStatusMessage(err?.response?.data?.message || "Failed to save draft.");
     },
   });
 
@@ -142,8 +179,21 @@ export const AssessmentFlow: React.FC = () => {
     mutationFn: async () => {
       const payload: AnswerSubmissionItem[] = Object.values(answersState);
       await saveAssessmentAnswers(currentAssessmentId!, payload, currentLang);
+      if (currentAssessmentId && activeBusinessId) {
+        await saveRequirementProfile({
+          assessment_id: currentAssessmentId,
+          business_id: activeBusinessId,
+          business_goal: requirementProfileState.business_goal || "G1_CUSTOMER_REACH",
+          primary_pain_point: requirementProfileState.primary_pain_point || "P1_FIND_CONTACT",
+          urgency: requirementProfileState.urgency || "U2_WITHIN_6_MONTHS",
+          budget_tier: requirementProfileState.budget_tier || "B1_LOW",
+          existing_tools: requirementProfileState.existing_tools || ["TOOL_NONE"],
+          preferred_solution_type: requirementProfileState.preferred_solution_type,
+        });
+      }
       return submitAssessment(currentAssessmentId!);
     },
+
     onSuccess: (res) => {
       if (res.data) {
         setClassificationResult(res.data);
@@ -608,14 +658,89 @@ export const AssessmentFlow: React.FC = () => {
                 <Button
                   variant="primary"
                   size="md"
-                  onClick={() => submitMutation.mutate()}
-                  isLoading={submitMutation.isPending}
+                  onClick={() => setActiveStep("requirements")}
                   disabled={answeredCount === 0}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {t("assessment:questionnaire.submit")}
+                  {currentLang === "hi" ? "अगला: व्यावसायिक आवश्यकताएं →" : "Next: Business Needs →"}
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Step: Business Requirement Profiling (Context & Constraints)
+  if (activeStep === "requirements" && taxonomies) {
+    return (
+      <div className="max-w-4xl mx-auto py-6 space-y-8 animate-fadeIn pb-24">
+        {/* Step Header */}
+        <div className="flex items-center justify-between gap-4 border-b border-[#EDE2D8] pb-4">
+          <div className="space-y-1">
+            <span className="text-xs uppercase font-extrabold tracking-widest text-[#F0592A]">
+              {currentLang === "hi" ? "चरण 2: व्यावसायिक आवश्यकताएं" : "Step 2: Business Context & Needs"}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#241C15] font-heading tracking-tight">
+              {currentLang === "hi" ? "व्यावसायिक आवश्यकता प्रोफ़ाइल" : "Business Requirement Profile"}
+            </h2>
+          </div>
+          <Badge variant="brand" size="md">
+            {currentLang === "hi" ? "प्रस्तावित अनुसंधान V1" : "Proposed Research V1"}
+          </Badge>
+        </div>
+
+        {statusMessage && (
+          <Alert type="info" onDismiss={() => setStatusMessage(null)}>
+            {statusMessage}
+          </Alert>
+        )}
+
+
+        {/* Conversational Requirement Profiling Module */}
+        <RequirementProfilingSection
+          taxonomies={taxonomies}
+          profileState={requirementProfileState}
+          onChange={(updated) =>
+            setRequirementProfileState((prev) => ({ ...prev, ...updated }))
+          }
+          currentLang={currentLang}
+        />
+
+        {/* Sticky Action Footer */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#EDE2D8] p-4 shadow-lg lg:pl-[260px]">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => setActiveStep("questionnaire")}
+              leftIcon={<ArrowLeft className="w-4 h-4" />}
+            >
+              {currentLang === "hi" ? "← प्रश्नों पर वापस जाएं" : "← Back to Questions"}
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={() => saveMutation.mutate()}
+                isLoading={saveMutation.isPending}
+              >
+                {t("assessment:questionnaire.save_draft")}
+              </Button>
+
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => submitMutation.mutate()}
+                isLoading={submitMutation.isPending}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+              >
+                {currentLang === "hi"
+                  ? "मूल्यांकन जमा करें और रोडमैप बनाएं →"
+                  : "Submit & Generate Roadmap →"}
+              </Button>
             </div>
           </div>
         </div>
@@ -628,6 +753,7 @@ export const AssessmentFlow: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto py-6 space-y-8 animate-fadeIn pb-16">
         {/* Top Success Eyebrow */}
+
         <div className="text-center space-y-2">
           <Badge variant="success" size="md" dot>
             Assessment Complete ✓

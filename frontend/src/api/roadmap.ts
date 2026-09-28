@@ -38,9 +38,13 @@ export interface BusinessRecommendationItem {
   impact_level: string;
   reason_en?: string;
   reason_hi?: string;
+  feasibility_status?: string;
+  budget_fit?: string;
+  traceability_json?: Record<string, any>;
   status: string;
   generated_at: string;
 }
+
 
 export interface RoadmapTaskItem {
   id: number;

@@ -26,12 +26,18 @@ class ReproducibilityManifest(BaseModel):
     git_commit_hash: str
     ruleset_version: int
     question_bank_version: int
+    rbdl_framework_version: str
+    requirement_profile_version: str
+    recommendation_rules_version: str
     rules_definition_sha256: str
     question_bank_sha256: str
+    requirement_taxonomies_sha256: str
+    recommendations_catalog_sha256: str
     python_version: str
     platform: str
     database_dialect: str
     reproduction_instructions: Dict[str, str]
+
 
 
 class ReproducibilityService:
@@ -63,6 +69,28 @@ class ReproducibilityService:
         rules_hash = cls.compute_sha256(RULES_V1)
         qb_hash = cls.compute_sha256(QUESTIONS_V1)
 
+        from app.domain.requirements.constants_v1 import (
+            BUDGET_TIERS_V1,
+            BUSINESS_GOALS_V1,
+            EXISTING_TOOLS_V1,
+            PAIN_POINTS_V1,
+            RBDL_FRAMEWORK_VERSION,
+            RECOMMENDATION_RULES_VERSION,
+            REQUIREMENT_PROFILE_CODE,
+            URGENCY_TIERS_V1,
+        )
+        from app.domain.recommendations.catalog_v1 import RECOMMENDATIONS_V1
+
+        taxonomies_combined = {
+            "goals": BUSINESS_GOALS_V1,
+            "pain_points": PAIN_POINTS_V1,
+            "urgency": URGENCY_TIERS_V1,
+            "budget": BUDGET_TIERS_V1,
+            "tools": EXISTING_TOOLS_V1,
+        }
+        taxonomies_hash = cls.compute_sha256(taxonomies_combined)
+        recs_hash = cls.compute_sha256(RECOMMENDATIONS_V1)
+
         dialect = "mysql"
         if "sqlite" in settings.DATABASE_URL.lower():
             dialect = "sqlite"
@@ -82,10 +110,16 @@ class ReproducibilityService:
             git_commit_hash=git_hash,
             ruleset_version=RULESET_VERSION,
             question_bank_version=QUESTION_BANK_VERSION,
+            rbdl_framework_version=RBDL_FRAMEWORK_VERSION,
+            requirement_profile_version=REQUIREMENT_PROFILE_CODE,
+            recommendation_rules_version=RECOMMENDATION_RULES_VERSION,
             rules_definition_sha256=rules_hash,
             question_bank_sha256=qb_hash,
+            requirement_taxonomies_sha256=taxonomies_hash,
+            recommendations_catalog_sha256=recs_hash,
             python_version=sys.version.split()[0],
             platform=platform.platform(),
             database_dialect=dialect,
             reproduction_instructions=instructions,
         )
+

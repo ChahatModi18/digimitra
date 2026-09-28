@@ -122,16 +122,24 @@ class BusinessRecommendation(Base):
     reason_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     reason_hi: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     evidence_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    traceability_json: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
     status: Mapped[str] = mapped_column(
         Enum("suggested", "accepted", "dismissed", name="business_rec_status_enum"),
         default="suggested",
         nullable=False,
     )
+    feasibility_status: Mapped[str] = mapped_column(
+        String(30),
+        default="FEASIBLE_NOW",
+        nullable=False,
+    )
+    budget_fit: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
 
     # Relationships
     business: Mapped["Business"] = relationship("Business", back_populates="business_recommendations")

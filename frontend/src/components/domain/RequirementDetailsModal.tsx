@@ -5,9 +5,11 @@ import {
   Zap,
   TrendingUp,
   ShieldCheck,
+  Target,
 } from "lucide-react";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
+
 
 export interface RequirementDetailsModalProps {
   isOpen: boolean;
@@ -22,6 +24,9 @@ export interface RequirementDetailsModalProps {
   dimensionCode?: string;
   phaseNumber?: number;
   priorityScore?: number;
+  feasibilityStatus?: string;
+  budgetFit?: string;
+  traceabilityJson?: Record<string, any>;
   currentLang?: "en" | "hi";
 }
 
@@ -38,6 +43,9 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
   dimensionCode,
   phaseNumber = 1,
   priorityScore,
+  feasibilityStatus = "FEASIBLE_NOW",
+  budgetFit,
+  traceabilityJson,
   currentLang = "en",
 }) => {
   if (!isOpen) return null;
@@ -103,6 +111,41 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
     level: phaseNumber,
   };
 
+  const feasibilityBadges: Record<string, { labelEn: string; labelHi: string; color: string }> = {
+    FEASIBLE_NOW: {
+      labelEn: "Feasible Now",
+      labelHi: "तुरंत संभव (बजट अनुकूल)",
+      color: "bg-emerald-50 text-emerald-800 border-emerald-300",
+    },
+    LOWER_COST_ALTERNATIVE: {
+      labelEn: "Lower-Cost Alternative",
+      labelHi: "कम लागत वाला विकल्प",
+      color: "bg-blue-50 text-blue-800 border-blue-300",
+    },
+    DEFER_DUE_TO_BUDGET: {
+      labelEn: "Deferred Due to Budget",
+      labelHi: "बजट के कारण बाद के लिए स्थगित",
+      color: "bg-amber-50 text-amber-800 border-amber-300",
+    },
+    ALREADY_HAVE: {
+      labelEn: "Already Adopted",
+      labelHi: "पहले से उपलब्ध",
+      color: "bg-purple-50 text-purple-800 border-purple-300",
+    },
+    ELIGIBLE: {
+      labelEn: "Eligible Intervention",
+      labelHi: "पात्र हस्तक्षेप",
+      color: "bg-stone-50 text-stone-800 border-stone-300",
+    },
+  };
+
+  const statusInfo = feasibilityBadges[feasibilityStatus] || feasibilityBadges["FEASIBLE_NOW"];
+
+  // Extract traceability details if present
+  const step1 = traceabilityJson?.step_1_assessment;
+  const step2 = traceabilityJson?.step_2_capability_gap;
+  const step3 = traceabilityJson?.step_3_business_context;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-in fade-in duration-200"
@@ -124,9 +167,14 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
               <span className="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200">
                 {dimensionCode?.toUpperCase() || "CORE"}
               </span>
+              <span
+                className={`text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-md border ${statusInfo.color}`}
+              >
+                {isHi ? statusInfo.labelHi : statusInfo.labelEn}
+              </span>
               {priorityScore !== undefined && (
                 <Badge variant="brand" size="sm">
-                  Priority Score: {priorityScore.toFixed(2)}
+                  Priority: {priorityScore.toFixed(2)}
                 </Badge>
               )}
             </div>
@@ -164,7 +212,60 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
           </p>
         </div>
 
-        {/* 2. Detailed Description & Why Recommended */}
+        {/* 2. Complete Traceability Evidence Trail (Audit & Reproducibility) */}
+        {traceabilityJson && (
+          <div className="rounded-2xl bg-stone-50 border border-stone-200 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-stone-900 font-bold text-xs uppercase tracking-wider">
+              <Target className="w-4 h-4 text-orange-600" />
+              <span>
+                {isHi
+                  ? "सिफारिश ट्रेसेबिलिटी श्रृंखला (Requirement Traceability Trail)"
+                  : "Recommendation Traceability Chain (Audit Trail)"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200/80">
+                <span className="text-[10px] text-stone-500 uppercase font-bold block">
+                  {isHi ? "1. मूल्यांकन आयाम व स्कोर" : "1. Dimension Diagnostic"}
+                </span>
+                <span className="font-semibold text-stone-800 mt-0.5 block">
+                  {dimensionCode?.toUpperCase()}: {step1?.actual_score ?? "—"}/10 (Gate: {step1?.target_gate_score ?? "4.0"})
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200/80">
+                <span className="text-[10px] text-stone-500 uppercase font-bold block">
+                  {isHi ? "2. क्षमता अंतर (Capability Gap)" : "2. Capability Gap"}
+                </span>
+                <span className="font-semibold text-stone-800 mt-0.5 block">
+                  Gap Magnitude: {step2?.gap_magnitude ?? 0.0} pts
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200/80">
+                <span className="text-[10px] text-stone-500 uppercase font-bold block">
+                  {isHi ? "3. व्यावसायिक लक्ष्य व दर्द बिंदु" : "3. Context & Goal"}
+                </span>
+                <span className="font-semibold text-stone-800 mt-0.5 block truncate">
+                  {step3?.business_goal?.split("_")[0] || "Goal"} & {step3?.primary_pain_point?.split("_")[0] || "Pain Point"}
+                </span>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-white border border-stone-200/80">
+                <span className="text-[10px] text-stone-500 uppercase font-bold block">
+                  {isHi ? "4. बजट संभाव्यता" : "4. Budget Feasibility"}
+                </span>
+                <span className="font-semibold text-stone-800 mt-0.5 block truncate">
+                  {step3?.budget_tier?.split("_")[0] || "Tier"} {budgetFit ? `(${budgetFit.replace(/_/g, " ")})` : `(${step3?.illustrative_budget_range || "Illustrative"})`}
+                </span>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Detailed Description & Why Recommended */}
         <div className="space-y-3">
           <div>
             <h4 className="text-xs font-bold uppercase text-stone-500 tracking-wider mb-1">
@@ -187,7 +288,7 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
           )}
         </div>
 
-        {/* 3. Budget-Tiered Implementation Subsets (Entry-Level vs Growth) */}
+        {/* 4. Budget-Tiered Implementation Subsets */}
         <div className="space-y-2.5">
           <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-stone-700 tracking-wider">
             <IndianRupee className="w-3.5 h-3.5 text-stone-600" />
@@ -199,7 +300,6 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Entry-Level Zero-Cost / Low Budget Subset */}
             <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-emerald-900 flex items-center gap-1">
@@ -217,30 +317,34 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
               </p>
             </div>
 
-            {/* Growth / Structured Tier */}
             <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200/90 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-blue-900 flex items-center gap-1">
                   <TrendingUp className="w-3.5 h-3.5 text-blue-700" />
-                  {isHi ? "विकास स्तर (Growth Tier)" : "Growth Tier"}
+                  {isHi ? "विकास सबसेट (Growth-Tier)" : "Growth-Tier Subset"}
                 </span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
-                  {isHi ? "₹500 - ₹2,000/माह" : "₹500 - ₹2,000/mo"}
+                  {isHi ? "₹500 - ₹3,000/माह" : "₹500 - ₹3,000/mo"}
                 </span>
               </div>
               <p className="text-xs text-blue-800 leading-relaxed">
                 {isHi
-                  ? "समर्पित बिलिंग सॉफ्टवेयर (Vyapar, Tally Prime Mobile), थर्मल ब्लूटूथ प्रिंटर और स्वचालित इन्वेंट्री अलर्ट।"
-                  : "Dedicated desktop/mobile POS (Vyapar, Marg, Tally), Bluetooth thermal bill printer, and automated stock alerts."}
+                  ? "उन्नत पीओएस बिलिंग सॉफ्टवेयर (Tally, Vyapar), थर्मल प्रिंटर, या सशुल्क ई-कॉमर्स स्टोर। मध्यम बजट में अधिक दक्षता।"
+                  : "Dedicated POS billing software (Vyapar, Tally), thermal printers, or paid e-commerce subscriptions for enhanced volume handling."}
               </p>
             </div>
           </div>
         </div>
 
-        {/* 4. Action / Close */}
-        <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-3">
-          <Button variant="outline" size="md" onClick={onClose}>
-            {isHi ? "बंद करें" : "Close Details"}
+        {/* Footer Actions */}
+        <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-3">
+          <span className="text-[11px] text-stone-500 font-medium">
+            {isHi
+              ? "प्रस्तावित अनुसंधान ढांचा — साक्ष्य आधारित सिफारिशें"
+              : "Proposed Research Framework — Evidence-Based Roadmap"}
+          </span>
+          <Button variant="primary" onClick={onClose} size="sm">
+            {isHi ? "समझ गया / बंद करें" : "Understood / Close"}
           </Button>
         </div>
       </div>
