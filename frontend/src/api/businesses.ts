@@ -5,12 +5,28 @@ import { APIResponse, Business } from "../types";
 export interface CreateBusinessPayload {
   name: string;
   sector: string;
+  business_type?: string;
+  sub_category?: string;
+  owner_name?: string;
+  year_established?: number;
+  years_in_operation?: number;
   enterprise_size: "Micro" | "Small" | "Medium";
+  employee_count?: number;
   state: string;
   city: string;
+  area_locality?: string;
+  business_address?: string;
   pincode?: string;
-  description?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  website?: string;
   primary_language: string;
+  additional_language?: string;
+  business_model?: string;
+  target_customers?: string;
+  monthly_revenue?: string;
+  digitalization_goal?: string;
+  description?: string;
 }
 
 export async function createBusiness(payload: CreateBusinessPayload): Promise<Business> {

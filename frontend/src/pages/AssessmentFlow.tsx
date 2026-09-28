@@ -386,9 +386,34 @@ export const AssessmentFlow: React.FC = () => {
 
     const dimCode = currentQ?.dimension_code || "infra";
     const dimInfo = dimensionNames[dimCode] || { en: dimCode, hi: dimCode, icon: "📋" };
+    const selectedBusiness = businesses.find((b) => b.id === activeBusinessId) || businesses[0];
 
     return (
       <div className="max-w-3xl mx-auto py-6 space-y-6 animate-fadeIn pb-32">
+        {/* Active Business Context Pill */}
+        {selectedBusiness && (
+          <div className="bg-orange-50/70 border border-orange-200/80 rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-stone-900">🏪 {selectedBusiness.name}</span>
+              {selectedBusiness.owner_name && (
+                <span className="text-stone-600 font-medium">({selectedBusiness.owner_name})</span>
+              )}
+              <span className="text-stone-400">•</span>
+              <span className="text-stone-600">{selectedBusiness.city}, {selectedBusiness.state}</span>
+              {selectedBusiness.enterprise_size && (
+                <span className="px-2 py-0.5 rounded bg-white border border-orange-200 font-bold text-orange-700 text-[10px]">
+                  {selectedBusiness.enterprise_size}
+                </span>
+              )}
+            </div>
+            {selectedBusiness.digitalization_goal && (
+              <span className="text-orange-800 font-medium truncate max-w-sm text-[11px]">
+                🎯 {selectedBusiness.digitalization_goal}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Progress Bar & Question Counter */}
         <div className="bg-white rounded-2xl p-4 border border-[#EDE2D8] shadow-card space-y-3">
           <div className="flex justify-between items-center text-xs">

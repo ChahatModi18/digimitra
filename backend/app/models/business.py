@@ -41,6 +41,23 @@ class Business(Base, TimestampMixin):
     contact_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     years_in_operation: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     employee_count: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
+    
+    # Extended MSME Operational & Contact Fields
+    owner_name: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    business_type: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    sub_category: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    year_established: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    area_locality: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    business_address: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    website: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    primary_language_code: Mapped[Optional[str]] = mapped_column(String(10), default="en", nullable=True)
+    additional_language: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    business_model: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    target_customers: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    monthly_revenue: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    digitalization_goal: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    description_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     def __init__(self, **kwargs):
@@ -60,10 +77,12 @@ class Business(Base, TimestampMixin):
                 kwargs["district"] = city_val
         if "category_id" not in kwargs:
             kwargs["category_id"] = 1
+        if "primary_language" in kwargs and "primary_language_code" not in kwargs:
+            kwargs["primary_language_code"] = kwargs.pop("primary_language")
+        if "description" in kwargs and "description_text" not in kwargs:
+            kwargs["description_text"] = kwargs.pop("description")
         # Strip legacy fields not in table schema
         kwargs.pop("sector", None)
-        kwargs.pop("description", None)
-        kwargs.pop("primary_language", None)
         super().__init__(**kwargs)
 
     # Backward compatibility hybrid properties for Phase 1 code & queries
@@ -120,21 +139,21 @@ class Business(Base, TimestampMixin):
     def sector(self, value: str) -> None:
         pass
 
-    @property
+    @hybrid_property
     def primary_language(self) -> str:
-        return "en"
+        return self.primary_language_code or "en"
 
     @primary_language.setter
     def primary_language(self, value: str) -> None:
-        pass
+        self.primary_language_code = value
 
-    @property
+    @hybrid_property
     def description(self) -> Optional[str]:
-        return None
+        return self.description_text
 
     @description.setter
     def description(self, value: Optional[str]) -> None:
-        pass
+        self.description_text = value
 
     # Relationships
     owner: Mapped["User"] = relationship("User", back_populates="businesses")
