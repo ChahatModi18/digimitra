@@ -18,6 +18,8 @@ import {
   DollarSign,
   Target,
   Briefcase,
+  ArrowRight,
+  X,
 } from "lucide-react";
 import { fetchBusinesses, createBusiness, CreateBusinessPayload } from "../api/businesses";
 import { Business } from "../types";
@@ -77,16 +79,16 @@ const INITIAL_FORM_STATE: CreateBusinessPayload = {
   years_in_operation: undefined,
   enterprise_size: "Micro",
   employee_count: undefined,
-  state: "Maharashtra",
-  city: "Mumbai",
+  state: "Rajasthan",
+  city: "Jaipur",
   area_locality: "",
   business_address: "",
-  pincode: "400001",
+  pincode: "302020",
   contact_phone: "",
   contact_email: "",
   website: "",
-  primary_language: "en",
-  additional_language: "hi",
+  primary_language: "hi",
+  additional_language: "en",
   business_model: "Offline retail",
   target_customers: "",
   monthly_revenue: "₹1,00,000–₹2,00,000",
@@ -106,9 +108,9 @@ export const BusinessRegistration: React.FC = () => {
   const [showStandaloneCalculator, setShowStandaloneCalculator] = useState(false);
 
   const [formData, setFormData] = useState<CreateBusinessPayload>(INITIAL_FORM_STATE);
-
   const [customCity, setCustomCity] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [registeredSuccessBiz, setRegisteredSuccessBiz] = useState<Business | null>(null);
 
   // Fetch registered businesses
   const {
@@ -138,16 +140,24 @@ export const BusinessRegistration: React.FC = () => {
     onSuccess: (newBiz) => {
       queryClient.invalidateQueries({ queryKey: ["businesses"] });
       setActiveBusinessId(newBiz.id);
+      setRegisteredSuccessBiz(newBiz);
       setShowForm(false);
+      setErrorMessage(null);
       setFormData(INITIAL_FORM_STATE);
+      // Auto-scroll to top to highlight success banner
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     onError: (err: any) => {
       const msg =
+        err?.response?.data?.message ||
         err?.message ||
-        (Array.isArray(err?.details)
-          ? err.details.map((d: any) => `${d.loc?.join(".")}: ${d.msg}`).join(", ")
+        (Array.isArray(err?.response?.data?.details)
+          ? err.response.data.details.map((d: any) => `${d.loc?.join(".")}: ${d.msg}`).join(", ")
           : "Failed to register enterprise. Please check all fields.");
       setErrorMessage(msg);
+      setTimeout(() => {
+        document.getElementById("form-error-anchor")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
     },
   });
 
@@ -160,6 +170,7 @@ export const BusinessRegistration: React.FC = () => {
           ? "उद्यम का नाम आवश्यक है।"
           : "Enterprise name is required."
       );
+      document.getElementById("form-error-anchor")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     createMutation.mutate(formData);
@@ -169,6 +180,8 @@ export const BusinessRegistration: React.FC = () => {
     setFormData({ ...QUEENS_BOOK_WORLD_SAMPLE });
     setCustomCity(false);
     setShowForm(true);
+    setErrorMessage(null);
+    setRegisteredSuccessBiz(null);
   };
 
   const activeBiz = businesses.find((b) => b.id === activeBusinessId) || businesses[0];
@@ -186,7 +199,7 @@ export const BusinessRegistration: React.FC = () => {
           </Badge>
         }
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant="outline"
               size="md"
@@ -215,7 +228,10 @@ export const BusinessRegistration: React.FC = () => {
             <Button
               variant={showForm ? "secondary" : "primary"}
               size="md"
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                setShowForm(!showForm);
+                setRegisteredSuccessBiz(null);
+              }}
               leftIcon={<PlusCircle className="w-4 h-4" />}
             >
               {showForm
@@ -230,10 +246,60 @@ export const BusinessRegistration: React.FC = () => {
         }
       />
 
+      {/* Global Top Error Message */}
       {errorMessage && (
         <Alert type="error" onDismiss={() => setErrorMessage(null)}>
           {errorMessage}
         </Alert>
+      )}
+
+      {/* Success Notification Banner on Registration */}
+      {registeredSuccessBiz && (
+        <Card variant="gradient-orange" className="p-6 sm:p-8 border-2 border-emerald-500 bg-emerald-50/60 space-y-4 animate-fadeIn shadow-md">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+                <CheckCircle className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="success" size="sm" dot>
+                    {currentLang === "hi" ? "सफलतापूर्वक पंजीकृत!" : "Registration Successful!"}
+                  </Badge>
+                  <span className="text-xs font-mono font-bold text-stone-600">ID #{registeredSuccessBiz.id}</span>
+                </div>
+                <h3 className="text-xl font-extrabold text-stone-900 tracking-tight">
+                  {registeredSuccessBiz.name}
+                </h3>
+                <p className="text-xs text-stone-700 leading-relaxed max-w-xl">
+                  {currentLang === "hi"
+                    ? "उद्यम का प्रोफ़ाइल, संपर्क रिकॉर्ड और ईमेल सफलतापूर्वक डेटाबेस में सुरक्षित हो गया है। अब आप 14-प्रश्नों का डिजिटल मूल्यांकन शुरू कर सकते हैं।"
+                    : "Enterprise profile, operational details, and contact records have been securely saved. You can now proceed to the 14-question digital assessment."}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => navigate("/assessment")}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+                className="bg-emerald-700 hover:bg-emerald-800 border-emerald-800 text-white shadow-md"
+              >
+                {currentLang === "hi" ? "मूल्यांकन शुरू करें" : "Take Assessment"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRegisteredSuccessBiz(null)}
+                leftIcon={<X className="w-4 h-4" />}
+              >
+                {currentLang === "hi" ? "बंद करें" : "Dismiss"}
+              </Button>
+            </div>
+          </div>
+        </Card>
       )}
 
       {/* Standalone MSME Eligibility Calculator Tool */}
@@ -866,9 +932,27 @@ export const BusinessRegistration: React.FC = () => {
               </div>
             </div>
 
+            {/* In-Form Error Anchor & Message Display right above submit button */}
+            <div id="form-error-anchor">
+              {errorMessage && (
+                <Alert type="error" onDismiss={() => setErrorMessage(null)}>
+                  {errorMessage}
+                </Alert>
+              )}
+            </div>
+
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-200">
               {businesses.length > 0 && (
-                <Button variant="ghost" size="md" onClick={() => setShowForm(false)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  onClick={() => {
+                    setShowForm(false);
+                    setErrorMessage(null);
+                  }}
+                  disabled={createMutation.isPending}
+                >
                   Cancel
                 </Button>
               )}
@@ -877,8 +961,15 @@ export const BusinessRegistration: React.FC = () => {
                 variant="primary"
                 size="md"
                 isLoading={createMutation.isPending}
+                disabled={createMutation.isPending}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+                className="min-w-[180px]"
               >
-                {t("business.submit")}
+                {createMutation.isPending
+                  ? currentLang === "hi"
+                    ? "पंजीकृत किया जा रहा है..."
+                    : "Registering..."
+                  : t("business.submit")}
               </Button>
             </div>
           </form>
@@ -901,7 +992,10 @@ export const BusinessRegistration: React.FC = () => {
             title={t("business.no_businesses")}
             description="Register your first MSME enterprise or use sample Queen's Book World to begin the 14-question digital assessment."
             actionLabel="+ Register Enterprise"
-            onAction={() => setShowForm(true)}
+            onAction={() => {
+              setShowForm(true);
+              setRegisteredSuccessBiz(null);
+            }}
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -944,7 +1038,10 @@ export const BusinessRegistration: React.FC = () => {
                         </Badge>
                       ) : (
                         <button
-                          onClick={() => setActiveBusinessId(biz.id)}
+                          onClick={() => {
+                            setActiveBusinessId(biz.id);
+                            setRegisteredSuccessBiz(null);
+                          }}
                           className="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200 transition"
                         >
                           {t("business.select_active")}
