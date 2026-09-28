@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
+import { RequirementDetailsModal } from "./RequirementDetailsModal";
 
 export interface RecommendationCardProps {
   code: string;
@@ -44,6 +45,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
   exploreLabel,
   className = "",
 }) => {
+  const [showModal, setShowModal] = useState(false);
   const title = currentLang === "hi" ? titleHi : titleEn;
   const description = currentLang === "hi" ? descriptionHi : descriptionEn;
   const reason = currentLang === "hi" ? reasonHi : reasonEn;
@@ -149,19 +151,37 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
             </Button>
           )}
 
-          {onAction && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onAction}
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-              className={onExplore ? "flex-1" : "w-full"}
-            >
-              {actionLabel || (currentLang === "hi" ? "विवरण देखें" : "View Details")}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (onAction) onAction();
+              setShowModal(true);
+            }}
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+            className={onExplore ? "flex-1" : "w-full"}
+          >
+            {actionLabel || (currentLang === "hi" ? "विवरण देखें" : "View Details")}
+          </Button>
         </div>
       </div>
+
+      {showModal && (
+        <RequirementDetailsModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          code={code}
+          titleEn={titleEn}
+          titleHi={titleHi}
+          descriptionEn={descriptionEn}
+          descriptionHi={descriptionHi}
+          reasonEn={reasonEn}
+          reasonHi={reasonHi}
+          dimensionCode={dimensionCode}
+          priorityScore={priorityScore}
+          currentLang={currentLang as "en" | "hi"}
+        />
+      )}
     </div>
   );
 };

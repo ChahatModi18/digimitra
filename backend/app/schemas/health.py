@@ -18,6 +18,9 @@ class SystemInfo(BaseModel):
     python_version: str
     platform: str
     framework: str = "FastAPI"
+    runtime_supported: bool = Field(default=True, description="True if Python 3.11/3.12 (Python 3.14+ not supported for runtime)")
+    database_dialect: str = Field(default="mysql", description="Active database engine dialect")
+    connected_database: Optional[str] = Field(default=None, description="Connected database name")
 
 
 class HealthResponse(BaseModel):

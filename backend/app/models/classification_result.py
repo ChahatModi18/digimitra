@@ -58,6 +58,9 @@ class ClassificationResult(Base):
         Integer, ForeignKey("ml_models.id", ondelete="RESTRICT"), nullable=True, index=True
     )
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # N/A Sensitivity Safeguard (C-05) - Non-invasive sensitivity indicator
+    na_sensitive: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    na_hypothetical_level: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
     classified_at: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),

@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from app.models.classification_result import ClassificationResult
     from app.models.ml import MLPrediction
     from app.models.research import ResearchEvaluationRecord
+    from app.models.consultant_label import ConsultantBlindLabel
 
 
 class Assessment(Base, TimestampMixin):
@@ -60,6 +61,22 @@ class Assessment(Base, TimestampMixin):
     )
     submitted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
+    # Assessment Respondent Metadata & Administration (I-03, I-04)
+    administration_mode: Mapped[Optional[str]] = mapped_column(
+        Enum("self", "consultant_assisted", name="assessment_admin_mode_enum"),
+        nullable=True,
+        default="self",
+    )
+    respondent_role: Mapped[Optional[str]] = mapped_column(
+        Enum("owner", "family", "employee", "other", name="assessment_respondent_role_enum"),
+        nullable=True,
+        default="owner",
+    )
+    reassessment_reason: Mapped[Optional[str]] = mapped_column(
+        Enum("scheduled", "retest_no_intervention", "post_intervention", name="assessment_reassessment_reason_enum"),
+        nullable=True,
+    )
+
     # Relationships
     business: Mapped["Business"] = relationship("Business", back_populates="assessments")
     previous_assessment: Mapped[Optional["Assessment"]] = relationship(
@@ -82,6 +99,9 @@ class Assessment(Base, TimestampMixin):
     )
     research_records: Mapped[List["ResearchEvaluationRecord"]] = relationship(
         "ResearchEvaluationRecord", back_populates="assessment", cascade="all, delete-orphan"
+    )
+    consultant_labels: Mapped[List["ConsultantBlindLabel"]] = relationship(
+        "ConsultantBlindLabel", back_populates="assessment", cascade="all, delete-orphan"
     )
 
 

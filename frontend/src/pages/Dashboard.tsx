@@ -20,6 +20,7 @@ import { DimensionCard } from "../components/domain/DimensionCard";
 import { Section } from "../components/layout/Section";
 import { HealthCard } from "../components/HealthCard";
 import { MsmeClassificationCalculator } from "../components/domain/MsmeClassificationCalculator";
+import { ResearchDisclosureBanner } from "../components/domain/ResearchDisclosureBanner";
 import { useTheme, MsmeThemeId } from "../context/ThemeContext";
 import { MSME_SECTORS } from "../data/msmeTaxonomy";
 
@@ -243,8 +244,13 @@ export const Dashboard: React.FC = () => {
             </Link>
           </div>
 
+          {/* Research & Diagnostic Disclosure Banner */}
+          <div className="max-w-2xl mx-auto pt-2">
+            <ResearchDisclosureBanner compact={true} />
+          </div>
+
           {/* 3 Main Action Cards (Direct Product Category Style) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-6 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4 text-left">
             {/* Card 1: Assessment */}
             <Link
               to="/assessment"
@@ -559,7 +565,7 @@ export const Dashboard: React.FC = () => {
               className="text-xs font-bold uppercase tracking-wider"
               style={{ color: theme.primaryHex }}
             >
-              Free AI Digital Consultant
+              {currentLang === "hi" ? "आवश्यकता-आधारित डिजिटलीकरण ढांचा" : "Requirement-Based Framework"}
             </span>
           </div>
           <h3 className="text-2xl sm:text-3xl font-bold font-heading text-white">

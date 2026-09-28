@@ -37,6 +37,7 @@ import {
 import { LevelBadge } from "../components/domain/LevelBadge";
 import { LevelProgressBar } from "../components/domain/LevelProgressBar";
 import { DimensionScoreBarChart } from "../components/domain/DimensionScoreBarChart";
+import { ResearchDisclosureBanner } from "../components/domain/ResearchDisclosureBanner";
 
 export const AssessmentFlow: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -272,6 +273,9 @@ export const AssessmentFlow: React.FC = () => {
           subtitle={t("assessment:intro.desc")}
         />
 
+        {/* Academic & Diagnostic Disclosure */}
+        <ResearchDisclosureBanner />
+
         {/* Pillars Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <Card variant="default" className="p-6 space-y-2.5 border-[#EDE2D8] hover:border-[#F0592A]/40 transition">
@@ -472,10 +476,15 @@ export const AssessmentFlow: React.FC = () => {
           /* Central Focused Question Card */
           <Card variant="default" className="p-6 sm:p-10 space-y-6 border-[#EDE2D8] shadow-card bg-white">
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs uppercase font-extrabold tracking-widest text-[#F0592A]">
-                  {dimInfo[currentLang]}
-                </span>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs uppercase font-extrabold tracking-widest text-[#F0592A]">
+                    {dimInfo[currentLang]}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-orange-50 text-orange-800 border border-orange-200 px-2 py-0.5 rounded-md">
+                    {currentLang === "hi" ? "परिचालन आवश्यकता गेट" : "Readiness Gate"}
+                  </span>
+                </div>
 
                 {/* Not Applicable Chip */}
                 <button
@@ -630,6 +639,9 @@ export const AssessmentFlow: React.FC = () => {
             Comprehensive deterministic evaluation based on the Requirement-Based Digitalization Framework (RBDL).
           </p>
         </div>
+
+        {/* Academic Methodology Notice */}
+        <ResearchDisclosureBanner compact={false} />
 
         {/* Main RBDL Level Card */}
         <Card variant="default" className="p-8 sm:p-10 space-y-6 border-[#EDE2D8] shadow-card bg-white">

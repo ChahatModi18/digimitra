@@ -40,6 +40,7 @@ import {
 } from "../components";
 import { LevelBadge } from "../components/domain/LevelBadge";
 import { ProgressRing } from "../components/domain/ProgressRing";
+import { ResearchDisclosureBanner } from "../components/domain/ResearchDisclosureBanner";
 
 export const RoadmapView: React.FC = () => {
   const { i18n } = useTranslation();
@@ -201,6 +202,9 @@ export const RoadmapView: React.FC = () => {
         />
       ) : (
         <>
+          {/* Research Diagnostic Disclosure Banner */}
+          <ResearchDisclosureBanner compact={false} />
+
           {/* 2. Level Progression Journey Card with ProgressRing (Section 5.6 & 7.8) */}
           <Card variant="default" className="p-6 sm:p-8 space-y-6 border-[#EDE2D8] shadow-card bg-white">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">

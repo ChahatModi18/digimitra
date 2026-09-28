@@ -35,6 +35,9 @@ async def start_assessment(
         user_id=current_user.id,
         language_used=payload.language_used or "en",
         previous_assessment_id=payload.previous_assessment_id,
+        administration_mode=payload.administration_mode or "self",
+        respondent_role=payload.respondent_role or "owner",
+        reassessment_reason=payload.reassessment_reason,
     )
     return APIResponse(
         success=True,

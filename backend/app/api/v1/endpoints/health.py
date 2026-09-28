@@ -67,10 +67,32 @@ async def get_health_status(db: AsyncSession = Depends(get_db)) -> HealthRespons
         },
     )
 
+    # Runtime Python Version Safeguard (Python 3.11/3.12 supported, 3.14 unsupported)
+    py_major = sys.version_info.major
+    py_minor = sys.version_info.minor
+    runtime_supported = (py_major == 3 and py_minor in (11, 12))
+
+    # Dialect and database identification
+    db_dialect = "mysql"
+    if "sqlite" in settings.DATABASE_URL.lower():
+        db_dialect = "sqlite"
+    elif "mysql" in settings.DATABASE_URL.lower():
+        db_dialect = "mysql"
+
+    db_name = None
+    try:
+        if "@" in settings.DATABASE_URL:
+            db_name = settings.DATABASE_URL.split("/")[-1].split("?")[0]
+    except Exception:
+        db_name = "digimitra_db"
+
     system_info = SystemInfo(
         python_version=sys.version.split()[0],
         platform=platform.platform(),
         framework="FastAPI",
+        runtime_supported=runtime_supported,
+        database_dialect=db_dialect,
+        connected_database=db_name,
     )
 
     return HealthResponse(

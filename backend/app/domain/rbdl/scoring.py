@@ -150,6 +150,105 @@ class ScoringEngine:
         )
 
     @classmethod
+    def calculate_hypothetical_scores_with_na_as_unmet(
+        cls,
+        questions: List[Any],
+        answers_by_question_id: Dict[int, Any],
+    ) -> AssessmentScoringSummary:
+        """Hypothetical score recalculation treating all N/A responses as unmet (0 score, full denominator).
+
+        Safeguard C-05: Non-invasive N/A Sensitivity Indicator.
+        Does NOT alter production score calculation.
+        """
+        questions_by_dim: Dict[str, List[Any]] = {dim: [] for dim in RBDL_DIMENSIONS}
+        for q in questions:
+            dim = getattr(q, "dimension_code", None) or q.get("dimension_code")
+            if dim in questions_by_dim:
+                questions_by_dim[dim].append(q)
+
+        detailed_scores: Dict[str, DimensionScoreResult] = {}
+        dimension_scores: Dict[str, float] = {}
+
+        total_answered = 0
+        total_na = 0
+        total_missing = 0
+
+        for dim_code, dim_meta in RBDL_DIMENSIONS.items():
+            dim_questions = questions_by_dim.get(dim_code, [])
+            dim_raw_score = 0.0
+            dim_max_possible = 0.0
+            dim_answered = 0
+            dim_na = 0
+            dim_missing = 0
+
+            for q in dim_questions:
+                q_id = getattr(q, "id", None) or q.get("id")
+                q_type = getattr(q, "question_type", None) or q.get("question_type")
+                options = getattr(q, "options", []) or q.get("options", [])
+
+                answer = answers_by_question_id.get(q_id)
+
+                if answer is None:
+                    q_max = cls._get_question_max_score(q_type, options)
+                    dim_max_possible += q_max
+                    dim_missing += 1
+                    total_missing += 1
+                    continue
+
+                is_na = cls._is_answer_na(answer)
+                if is_na:
+                    # In sensitivity hypothesis, N/A counts as 0 scored, but denominator includes max possible
+                    q_max = cls._get_question_max_score(q_type, options)
+                    dim_max_possible += q_max
+                    dim_na += 1
+                    total_na += 1
+                    dim_answered += 1
+                    total_answered += 1
+                    continue
+
+                score_obtained, q_max = cls._calculate_question_score(q_type, options, answer)
+                dim_raw_score += score_obtained
+                dim_max_possible += q_max
+                dim_answered += 1
+                total_answered += 1
+
+            if dim_max_possible > 0:
+                normalized_score = round((dim_raw_score / dim_max_possible) * 10.0, 2)
+            else:
+                normalized_score = 0.0
+
+            result = DimensionScoreResult(
+                dimension_code=dim_code,
+                dimension_name_en=dim_meta.name_en,
+                dimension_name_hi=dim_meta.name_hi,
+                raw_score=round(dim_raw_score, 2),
+                max_possible_score=round(dim_max_possible, 2),
+                dimension_score=normalized_score,
+                weight=dim_meta.weight,
+                answered_count=dim_answered,
+                na_count=dim_na,
+                missing_count=dim_missing,
+                is_fully_na=False,
+            )
+            detailed_scores[dim_code] = result
+            dimension_scores[dim_code] = normalized_score
+
+        composite_score = 0.0
+        for dim_code, score in dimension_scores.items():
+            weight = DIMENSION_WEIGHTS.get(dim_code, 0.0)
+            composite_score += score * weight
+
+        return AssessmentScoringSummary(
+            dimension_scores=dimension_scores,
+            detailed_scores=detailed_scores,
+            composite_score=round(composite_score, 2),
+            total_answered=total_answered,
+            total_na=total_na,
+            total_missing=total_missing,
+            is_complete=(total_missing == 0),
+        )
+
+    @classmethod
     def _is_answer_na(cls, answer: Any) -> bool:
         """Check if an answer record represents an explicit Not Applicable selection."""
         text_ans = getattr(answer, "text_answer", None)

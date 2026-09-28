@@ -84,6 +84,9 @@ class AssessmentStart(BaseModel):
     business_id: int
     language_used: Optional[str] = "en"
     previous_assessment_id: Optional[int] = None
+    administration_mode: Optional[str] = Field(default="self", description="self or consultant_assisted")
+    respondent_role: Optional[str] = Field(default="owner", description="owner, family, employee, or other")
+    reassessment_reason: Optional[str] = Field(default=None, description="scheduled, retest_no_intervention, post_intervention")
 
 
 class AssessmentScoreRead(BaseModel):
@@ -137,6 +140,9 @@ class ClassificationResultRead(BaseModel):
     level_name_hi: str
     ruleset_version: Optional[int] = 1
     is_primary: bool = True
+    # N/A Sensitivity Safeguard (C-05)
+    na_sensitive: bool = False
+    na_hypothetical_level: Optional[int] = None
     classified_at: Optional[datetime] = None
     composite_score: float
     dimension_scores: Dict[str, float]
@@ -153,6 +159,29 @@ class ClassificationResultRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ConsultantBlindLabelCreate(BaseModel):
+    """Independent consultant evaluation rating creation schema (I-07)."""
+
+    assessment_id: int
+    labeled_rbdl_level: int = Field(..., ge=0, le=4, description="Independent RBDL Level (0 to 4)")
+    labeling_protocol_version: Optional[str] = "1.0"
+    rationales: Optional[str] = None
+
+
+class ConsultantBlindLabelRead(BaseModel):
+    """Independent consultant rating read schema."""
+
+    id: int
+    assessment_id: int
+    consultant_user_id: int
+    labeled_rbdl_level: int
+    labeling_protocol_version: str
+    rationales: Optional[str] = None
+    labeled_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AssessmentHistoryItemRead(BaseModel):
     """Summary item representing a past or present assessment in business history."""
 
@@ -161,6 +190,9 @@ class AssessmentHistoryItemRead(BaseModel):
     question_bank_version: int
     language_used: str
     status: str
+    administration_mode: Optional[str] = "self"
+    respondent_role: Optional[str] = "owner"
+    reassessment_reason: Optional[str] = None
     rbdl_level: Optional[int] = None
     level_name_en: Optional[str] = None
     level_name_hi: Optional[str] = None
@@ -228,6 +260,9 @@ class AssessmentRead(BaseModel):
     question_bank_version: int
     language_used: str
     status: str
+    administration_mode: Optional[str] = "self"
+    respondent_role: Optional[str] = "owner"
+    reassessment_reason: Optional[str] = None
     started_at: datetime
     submitted_at: Optional[datetime] = None
     created_at: datetime

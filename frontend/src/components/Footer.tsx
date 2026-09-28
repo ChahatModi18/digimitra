@@ -19,8 +19,8 @@ export const Footer: React.FC = () => {
               <span className="font-heading text-lg font-bold text-stone-900 tracking-tight">
                 DigiMitra
               </span>
-              <span className="text-[10px] uppercase font-bold bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">
-                Phase A5.3 Production
+              <span className="text-[10px] uppercase font-bold bg-stone-100 text-stone-700 border border-stone-200 px-2 py-0.5 rounded-full">
+                Research Instrument
               </span>
             </div>
             <p className="text-xs text-stone-500 max-w-md leading-relaxed">

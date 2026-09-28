@@ -10,6 +10,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Badge } from "../ui/Badge";
+import { RequirementDetailsModal } from "./RequirementDetailsModal";
 
 export interface TaskCardProps {
   id: number;
@@ -61,6 +62,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   className = "",
 }) => {
   const [showSkipModal, setShowSkipModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [localSkipNote, setLocalSkipNote] = useState("");
 
   const title = currentLang === "hi" ? titleHi : titleEn;
@@ -230,8 +232,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
 
-        {/* Quick toggle buttons */}
-        <div className="flex items-center gap-1.5">
+        {/* Quick toggle buttons & View Details */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            onClick={() => setShowDetailsModal(true)}
+            className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs transition"
+          >
+            {currentLang === "hi" ? "विवरण देखें" : "View Details"}
+          </button>
+
           {status !== "completed" && (
             <button
               disabled={isUpdating}
@@ -253,6 +262,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
       </div>
+
+      {showDetailsModal && (
+        <RequirementDetailsModal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          code={code || `TASK-${id}`}
+          titleEn={titleEn}
+          titleHi={titleHi}
+          descriptionEn={descriptionEn}
+          descriptionHi={descriptionHi}
+          reasonEn={reasonEn}
+          reasonHi={reasonHi}
+          phaseNumber={phaseNumber}
+          priorityScore={priorityScore}
+          currentLang={currentLang as "en" | "hi"}
+        />
+      )}
 
       {/* Skip Reason Modal */}
       {showSkipModal && (

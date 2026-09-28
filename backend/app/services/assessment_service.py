@@ -103,6 +103,9 @@ class AssessmentService:
         user_id: int,
         language_used: str = "en",
         previous_assessment_id: Optional[int] = None,
+        administration_mode: Optional[str] = "self",
+        respondent_role: Optional[str] = "owner",
+        reassessment_reason: Optional[str] = None,
     ) -> AssessmentRead:
         """Start a new assessment session or resume an existing in-progress session."""
         await cls.verify_business_ownership(db, business_id, user_id)
@@ -140,6 +143,9 @@ class AssessmentService:
             question_bank_version=1,
             language_used=language_used if language_used in ("en", "hi") else "en",
             status="in_progress",
+            administration_mode=administration_mode if administration_mode in ("self", "consultant_assisted") else "self",
+            respondent_role=respondent_role if respondent_role in ("owner", "family", "employee", "other") else "owner",
+            reassessment_reason=reassessment_reason if reassessment_reason in ("scheduled", "retest_no_intervention", "post_intervention") else None,
         )
         db.add(new_assessment)
         await db.commit()
@@ -449,6 +455,25 @@ class AssessmentService:
             business_profile=business_profile,
         )
 
+        # 5b. Compute N/A Sensitivity Safeguard (C-05)
+        has_any_na = any(ScoringEngine._is_answer_na(a) for a in answers_by_qid.values())
+        na_sensitive = False
+        na_hypothetical_level = classification_dto.rbdl_level
+
+        if has_any_na:
+            hypothetical_summary = ScoringEngine.calculate_hypothetical_scores_with_na_as_unmet(
+                questions=questions,
+                answers_by_question_id=answers_by_qid,
+            )
+            hypothetical_classification = RBDLClassifierEngine.classify(
+                scoring_summary=hypothetical_summary,
+                answers_by_question_code=answers_by_code,
+                options_by_id=options_by_id,
+                business_profile=business_profile,
+            )
+            na_hypothetical_level = hypothetical_classification.rbdl_level
+            na_sensitive = (na_hypothetical_level != classification_dto.rbdl_level)
+
         # 6. Persist Classification Result in classification_results table
         # Set any prior primary classification results for this assessment to false
         prior_res = await db.execute(
@@ -476,6 +501,8 @@ class AssessmentService:
             confidence_score=None,  # Rule-based classification is deterministic, not probabilistic
             ruleset_version=classification_dto.ruleset_version,
             is_primary=True,
+            na_sensitive=na_sensitive,
+            na_hypothetical_level=na_hypothetical_level,
             classified_at=datetime.now(timezone.utc).replace(tzinfo=None),
         )
         db.add(cr_record)
@@ -546,6 +573,8 @@ class AssessmentService:
             level_name_hi=classification_dto.level_name_hi,
             ruleset_version=cr_record.ruleset_version,
             is_primary=cr_record.is_primary,
+            na_sensitive=cr_record.na_sensitive,
+            na_hypothetical_level=cr_record.na_hypothetical_level,
             classified_at=cr_record.classified_at,
             composite_score=classification_dto.composite_score,
             dimension_scores=classification_dto.dimension_scores,
@@ -682,6 +711,8 @@ class AssessmentService:
             level_name_hi=level_name_hi,
             ruleset_version=cr.ruleset_version,
             is_primary=cr.is_primary,
+            na_sensitive=cr.na_sensitive if hasattr(cr, "na_sensitive") else False,
+            na_hypothetical_level=cr.na_hypothetical_level if hasattr(cr, "na_hypothetical_level") else None,
             classified_at=cr.classified_at,
             composite_score=round(composite_score, 2),
             dimension_scores=dim_scores,
