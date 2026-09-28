@@ -280,12 +280,12 @@ export const BusinessRegistration: React.FC = () => {
                 />
               </div>
 
-              {/* Sector Dropdown (Comprehensive 16+ Indian MSME Sectors) */}
+              {/* Sector Dropdown (Comprehensive 30+ Indian MSME Sectors Alphabetically Arranged) */}
               <div className="md:col-span-2 space-y-1.5">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-stone-700 flex items-center justify-between">
                   <span>{t("business.sector")} *</span>
-                  <span className="text-[10px] text-stone-500 font-normal lowercase">
-                    {MSME_SECTORS.length} sectors available
+                  <span className="text-[10px] text-stone-500 font-normal">
+                    {MSME_SECTORS.length} {currentLang === "hi" ? "क्षेत्र उपलब्ध (A-Z)" : "Sectors Available (A-Z)"}
                   </span>
                 </label>
                 <select
@@ -293,11 +293,17 @@ export const BusinessRegistration: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
                   className="w-full h-12 bg-white text-stone-900 text-sm rounded-xl px-4 border border-stone-200 hover:border-stone-300 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition shadow-xs font-medium"
                 >
-                  {MSME_SECTORS.map((sec) => (
-                    <option key={sec.id} value={sec.id}>
-                      {currentLang === "hi" ? `${sec.nameHi} (${sec.id})` : sec.nameEn}
-                    </option>
-                  ))}
+                  {[...MSME_SECTORS]
+                    .sort((a, b) => {
+                      const nameA = currentLang === "hi" ? a.nameHi : a.nameEn;
+                      const nameB = currentLang === "hi" ? b.nameHi : b.nameEn;
+                      return nameA.localeCompare(nameB);
+                    })
+                    .map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        {currentLang === "hi" ? `${sec.nameHi} (${sec.id})` : sec.nameEn}
+                      </option>
+                    ))}
                 </select>
                 <p className="text-[11px] text-stone-500 leading-tight">
                   {currentLang === "hi"
