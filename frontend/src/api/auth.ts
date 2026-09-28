@@ -74,13 +74,40 @@ export async function registerUser(payload: {
   throw new Error(response.data.message || "Registration failed");
 }
 
+export function isTokenExpired(token: string | null): boolean {
+  if (!token) return true;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return true;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (!payload.exp) return false;
+    // Expired if current time + 10s buffer > exp * 1000
+    return Date.now() >= payload.exp * 1000 - 10000;
+  } catch (e) {
+    return true;
+  }
+}
+
 /**
- * Ensures an active session token exists (auto-logs in demo MSME user if not present).
+ * Ensures an active session token exists (auto-logs in demo MSME user if not present or expired).
  */
 export async function ensureAuthenticatedSession(): Promise<string> {
   const existing = getStoredToken();
-  if (existing) {
+  if (existing && !isTokenExpired(existing)) {
     return existing;
+  }
+
+  // Clear stale or expired token
+  if (existing) {
+    clearStoredToken();
   }
 
   const demoEmail = "demo_owner@digimitra.in";
