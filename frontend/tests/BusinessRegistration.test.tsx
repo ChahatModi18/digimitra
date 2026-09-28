@@ -109,4 +109,83 @@ describe("BusinessRegistration Component", () => {
       );
     });
   });
+
+  it("auto-fills Queen's Book World sample profile and displays success banner upon registration", async () => {
+    (businessApi.fetchBusinesses as any).mockResolvedValue([]);
+    const mockQueensBiz = {
+      id: 99,
+      owner_id: 1,
+      name: "Queen's Book World",
+      sector: "Retail & Trade",
+      business_type: "Bookstore & Stationery Shop",
+      sub_category: "Books, Stationery & Educational Supplies",
+      owner_name: "Neha Sharma",
+      year_established: 2018,
+      enterprise_size: "Small",
+      employee_count: 4,
+      state: "Rajasthan",
+      city: "Jaipur",
+      area_locality: "Mansarovar",
+      business_address: "123, Shipra Path, Mansarovar, Jaipur, Rajasthan – 302020",
+      pincode: "302020",
+      contact_phone: "+91 98765 43210",
+      contact_email: "queensbookworld@example.com",
+      website: "Not available",
+      primary_language: "hi",
+      additional_language: "en",
+      business_model: "Offline retail",
+      target_customers: "Students, parents, teachers and local residents",
+      monthly_revenue: "₹2,00,000–₹3,00,000",
+      digitalization_goal: "Increase sales and attract more local customers",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    (businessApi.createBusiness as any).mockResolvedValueOnce(mockQueensBiz);
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <BrowserRouter>
+            <BusinessRegistration />
+          </BrowserRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    // 1. Click "Fill Sample (Queen's Book World)" button
+    const sampleBtn = screen.getByRole("button", { name: /Fill Sample \(Queen's Book World\)/i });
+    fireEvent.click(sampleBtn);
+
+    // 2. Verify form is populated
+    const nameInput = screen.getByDisplayValue("Queen's Book World");
+    expect(nameInput).toBeInTheDocument();
+
+    const ownerInput = screen.getByDisplayValue("Neha Sharma");
+    expect(ownerInput).toBeInTheDocument();
+
+    // 3. Submit form
+    const submitBtn = screen.getByRole("button", { name: /^Register Enterprise$/i });
+    fireEvent.click(submitBtn);
+
+    // 4. Verify API was called with Queen's Book World parameters
+    await waitFor(() => {
+      expect(businessApi.createBusiness).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Queen's Book World",
+          owner_name: "Neha Sharma",
+          enterprise_size: "Small",
+          city: "Jaipur",
+          contact_email: "queensbookworld@example.com",
+        })
+      );
+    });
+
+    // 5. Verify success notification banner is rendered
+    await waitFor(() => {
+      expect(screen.getByText(/Registration Successful!/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Take Assessment/i })).toBeInTheDocument();
+    });
+  });
 });
+

@@ -110,3 +110,80 @@ async def test_business_registration_authenticated_slice(client: AsyncClient):
 
     forbidden_resp = await client.get(f"/api/v1/businesses/{biz_id}", headers=headers2)
     assert forbidden_resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_queens_book_world_registration_and_record_persistence(client: AsyncClient):
+    """
+    Test registration and full record persistence for Queen's Book World sample enterprise profile
+    including email, phone, owner name, established year, employee count, monthly revenue,
+    locality, full address, business model, and digitalization goals.
+    """
+    # 1. Register and Login MSME Owner
+    owner_email = "neha_sharma_queens@example.com"
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": owner_email,
+            "password": "SecurePassword123!",
+            "full_name": "Neha Sharma",
+            "phone_number": "+919876543210",
+            "role": "business_owner",
+        },
+    )
+    login_res = await client.post(
+        "/api/v1/auth/login",
+        json={"email": owner_email, "password": "SecurePassword123!"},
+    )
+    token = login_res.json()["data"]["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # 2. Register Queen's Book World Enterprise Profile
+    queens_payload = {
+        "name": "Queen's Book World",
+        "sector": "Retail & Trade",
+        "business_type": "Bookstore & Stationery Shop",
+        "sub_category": "Books, Stationery & Educational Supplies",
+        "owner_name": "Neha Sharma",
+        "year_established": 2018,
+        "years_in_operation": 8,
+        "enterprise_size": "Small",
+        "employee_count": 4,
+        "state": "Rajasthan",
+        "city": "Jaipur",
+        "area_locality": "Mansarovar",
+        "business_address": "123, Shipra Path, Mansarovar, Jaipur, Rajasthan – 302020",
+        "pincode": "302020",
+        "contact_phone": "+91 98765 43210",
+        "contact_email": "queensbookworld@example.com",
+        "website": "Not available",
+        "primary_language": "hi",
+        "additional_language": "en",
+        "business_model": "Offline retail",
+        "target_customers": "Students, parents, teachers and local residents",
+        "monthly_revenue": "₹2,00,000–₹3,00,000",
+        "digitalization_goal": "Increase sales and attract more local customers",
+        "description": "Bookstore & stationery retail store in Mansarovar, Jaipur.",
+    }
+
+    create_resp = await client.post("/api/v1/businesses", json=queens_payload, headers=headers)
+    assert create_resp.status_code == 201
+    res_data = create_resp.json()
+    assert res_data["success"] is True
+    biz_id = res_data["data"]["id"]
+    assert biz_id > 0
+    assert res_data["data"]["name"] == "Queen's Book World"
+    assert res_data["data"]["enterprise_size"] == "Small"
+    assert res_data["data"]["city"] == "Jaipur"
+    assert res_data["data"]["state"] == "Rajasthan"
+
+    # 3. Retrieve business and verify persistence
+    get_resp = await client.get(f"/api/v1/businesses/{biz_id}", headers=headers)
+    assert get_resp.status_code == 200
+    biz = get_resp.json()["data"]
+    assert biz["id"] == biz_id
+    assert biz["name"] == "Queen's Book World"
+    assert biz["enterprise_size"] == "Small"
+    assert biz["city"] == "Jaipur"
+    assert biz["pincode"] == "302020"
+
