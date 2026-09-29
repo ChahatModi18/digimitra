@@ -1,8 +1,8 @@
-"""User and Authentication Schemas."""
-
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+AllowedRegistrationRole = Literal["business_owner", "consultant"]
 
 
 class UserBase(BaseModel):
@@ -13,6 +13,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
+    role: AllowedRegistrationRole = Field(default="business_owner")
     password: str = Field(..., min_length=8, description="Minimum 8 characters")
 
 
@@ -37,3 +38,7 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     user: UserRead
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

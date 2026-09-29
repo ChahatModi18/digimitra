@@ -1,7 +1,7 @@
 """Application Configuration and Environment Settings."""
 
 from typing import List, Union
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import json
 
@@ -23,10 +23,31 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # Security & JWT Auth
+    # Note: Default key is strictly permitted for local development only.
+    # Production startup will fail fast if this key is not overridden with a secure secret.
     SECRET_KEY: str = "digimitra-dev-insecure-secret-key-change-in-production-1234567890"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        """Fail fast on startup in production if SECRET_KEY is missing, default, or weak."""
+        env = (self.ENVIRONMENT or "").strip().lower()
+        if env == "production":
+            insecure_defaults = [
+                "digimitra-dev-insecure-secret-key-change-in-production-1234567890",
+                "secret",
+                "changeme",
+                "secretkey",
+            ]
+            key = self.SECRET_KEY or ""
+            if not key or key in insecure_defaults or len(key) < 32 or "insecure" in key.lower():
+                raise ValueError(
+                    "Production startup blocked: Insecure or default SECRET_KEY detected. "
+                    "A cryptographically random secret key of at least 32 characters must be set in production."
+                )
+        return self
 
     # Database Settings (MySQL 8.0+ Default)
     DATABASE_URL: str = "mysql+aiomysql://digimitra_user:digimitra_secret_pass@127.0.0.1:3306/digimitra_db"

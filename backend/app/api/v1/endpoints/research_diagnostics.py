@@ -58,7 +58,7 @@ async def get_threshold_sensitivity(
     current_user: User = Depends(require_roles([UserRole.ADMIN, UserRole.RESEARCHER])),
 ) -> APIResponse[SensitivityReport]:
     """Execute read-only threshold perturbation analysis across submitted assessment scores."""
-    # Gather submitted scores
+    # Gather submitted scores in a single batched query
     stmt = (
         select(Assessment.id)
         .where(Assessment.status == "submitted")
@@ -67,13 +67,21 @@ async def get_threshold_sensitivity(
     ass_ids = res.scalars().all()
 
     score_maps: List[Dict[str, float]] = []
-    for a_id in ass_ids:
+    if ass_ids:
         scores_res = await db.execute(
-            select(AssessmentScore).where(AssessmentScore.assessment_id == a_id)
+            select(AssessmentScore)
+            .where(AssessmentScore.assessment_id.in_(ass_ids))
+            .order_by(AssessmentScore.assessment_id)
         )
-        s_map = {s.dimension_code: float(s.raw_score) for s in scores_res.scalars().all()}
-        if s_map:
-            score_maps.append(s_map)
+        scores_by_ass: Dict[int, Dict[str, float]] = {}
+        for s in scores_res.scalars().all():
+            if s.assessment_id not in scores_by_ass:
+                scores_by_ass[s.assessment_id] = {}
+            scores_by_ass[s.assessment_id][s.dimension_code] = float(s.raw_score)
+
+        for a_id in ass_ids:
+            if a_id in scores_by_ass and scores_by_ass[a_id]:
+                score_maps.append(scores_by_ass[a_id])
 
     report = ThresholdSensitivityAnalyzer.analyze_dataset(
         assessment_scores_list=score_maps,

@@ -1,71 +1,71 @@
-"""Classification, Recommendations, Roadmap, Progress, Reports, and Admin Rules Endpoints."""
+"""Domain Routers: Real Authenticated Endpoints for Classification & Admin Rules.
 
-from fastapi import APIRouter
+All obsolete unauthenticated stubs have been removed or replaced with real,
+RBAC-protected, service-backed endpoints.
+"""
+
+from typing import Any, Dict, List
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.security import UserRole
+from app.db.session import get_db
+from app.dependencies import get_current_user, require_roles
+from app.models.rule import Rule
+from app.models.user import User
+from app.schemas.assessment import ClassificationResultRead
 from app.schemas.common import APIResponse
+from app.services.assessment_service import AssessmentService
 
 classification_router = APIRouter(prefix="/classification", tags=["Classification"])
-recommendations_router = APIRouter(prefix="/recommendations", tags=["Recommendations"])
-roadmap_router = APIRouter(prefix="/roadmap", tags=["Roadmap"])
-progress_router = APIRouter(prefix="/progress", tags=["Progress Tracking"])
-reports_router = APIRouter(prefix="/reports", tags=["Reports & Exports"])
 admin_rules_router = APIRouter(prefix="/admin/rules", tags=["Admin & Rule Management"])
 
 
-@classification_router.get("/{assessment_id}", response_model=APIResponse[dict])
-async def get_classification_result(assessment_id: int):
-    """Retrieve classification result and evidence trace for an assessment."""
+@classification_router.get("/{assessment_id}", response_model=APIResponse[ClassificationResultRead])
+async def get_classification_result(
+    assessment_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve verified classification result and evidence trace from real assessment service."""
+    classification_result = await AssessmentService.get_classification(
+        db=db,
+        assessment_id=assessment_id,
+        user_id=current_user.id,
+    )
     return APIResponse(
         success=True,
-        message="Classification endpoint operational (Phase 0 foundation).",
-        data={"assessment_id": assessment_id, "rbdl_level": 1, "method": "rule_based"},
+        message="Classification result retrieved successfully.",
+        data=classification_result,
     )
 
 
-@recommendations_router.get("/{business_id}", response_model=APIResponse[list])
-async def get_recommendations_for_business(business_id: int):
-    """Retrieve active recommendations for a business."""
-    return APIResponse(
-        success=True,
-        message="Recommendations endpoint operational (Phase 0 foundation).",
-        data=[],
+@admin_rules_router.get("", response_model=APIResponse[List[Dict[str, Any]]])
+async def list_admin_rules(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_roles([UserRole.ADMIN, UserRole.RESEARCHER])),
+):
+    """List active rule definitions for authorized admin/researcher management."""
+    result = await db.execute(
+        select(Rule).where(Rule.is_active == True).order_by(Rule.priority.desc(), Rule.rule_code.asc())
     )
-
-
-@roadmap_router.get("/{business_id}", response_model=APIResponse[dict])
-async def get_roadmap_for_business(business_id: int):
-    """Retrieve digital transformation roadmap for a business."""
+    rules = result.scalars().all()
+    rule_data = [
+        {
+            "id": r.id,
+            "rule_code": r.rule_code,
+            "name": r.name,
+            "description": r.description,
+            "target_rbdl_level": r.target_rbdl_level,
+            "priority": r.priority,
+            "version": r.version,
+            "rationale": r.rationale,
+        }
+        for r in rules
+    ]
     return APIResponse(
         success=True,
-        message="Roadmap endpoint operational (Phase 0 foundation).",
-        data={"business_id": business_id, "status": "active", "items": []},
-    )
-
-
-@progress_router.get("/{business_id}/timeline", response_model=APIResponse[list])
-async def get_progress_timeline(business_id: int):
-    """Retrieve progress milestones and audit history."""
-    return APIResponse(
-        success=True,
-        message="Progress timeline endpoint operational (Phase 0 foundation).",
-        data=[],
-    )
-
-
-@reports_router.get("/{business_id}/summary", response_model=APIResponse[dict])
-async def get_report_summary(business_id: int):
-    """Generate summary report export for a business."""
-    return APIResponse(
-        success=True,
-        message="Report export endpoint operational (Phase 0 foundation).",
-        data={"business_id": business_id, "format": "json"},
-    )
-
-
-@admin_rules_router.get("", response_model=APIResponse[list])
-async def list_admin_rules():
-    """List rule definitions for admin/researcher management."""
-    return APIResponse(
-        success=True,
-        message="Admin rules endpoint operational (Phase 0 foundation).",
-        data=[],
+        message="Admin rules retrieved successfully.",
+        data=rule_data,
     )

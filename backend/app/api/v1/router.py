@@ -9,8 +9,6 @@ from app.api.v1.endpoints.recommendations import router as recommendations_route
 from app.api.v1.endpoints.roadmap import router as roadmap_router
 from app.api.v1.endpoints.domain_routers import (
     classification_router,
-    progress_router,
-    reports_router,
     admin_rules_router,
 )
 from app.api.v1.endpoints.research_ml import router as research_ml_router
@@ -20,21 +18,22 @@ from app.api.v1.endpoints.requirements import router as requirements_router
 
 api_v1_router = APIRouter()
 
-# Register endpoint modules
+# Register core business & assessment endpoints
 api_v1_router.include_router(health_router)
 api_v1_router.include_router(auth_router)
 api_v1_router.include_router(businesses_router)
 api_v1_router.include_router(assessments_router)
-api_v1_router.include_router(classification_router)
+
+# Register real recommendations & roadmap endpoints
 api_v1_router.include_router(recommendations_router)
 api_v1_router.include_router(roadmap_router)
-api_v1_router.include_router(progress_router)
-api_v1_router.include_router(reports_router)
+
+# Register authenticated domain router compatibility endpoints
+api_v1_router.include_router(classification_router)
 api_v1_router.include_router(admin_rules_router)
+
+# Register research & discovery endpoints
 api_v1_router.include_router(research_ml_router)
 api_v1_router.include_router(research_diagnostics_router)
 api_v1_router.include_router(discovery_router)
 api_v1_router.include_router(requirements_router)
-
-
-

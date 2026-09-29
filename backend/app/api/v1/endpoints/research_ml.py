@@ -34,7 +34,7 @@ class TrainRequestPayload(BaseModel):
 
 
 async def _fetch_empirical_records(db: AsyncSession, stage: str = "stage_1") -> list[Dict[str, Any]]:
-    """Helper to read assessment records and metadata strictly read-only."""
+    """Helper to read assessment records and metadata strictly read-only using batched queries."""
     # 1. Fetch submitted assessments with classification results and businesses
     query = (
         select(Assessment, Business)
@@ -44,39 +44,57 @@ async def _fetch_empirical_records(db: AsyncSession, stage: str = "stage_1") -> 
     result = await db.execute(query)
     rows = result.all()
 
+    if not rows:
+        return []
+
+    ass_ids = [ass.id for ass, _ in rows]
+
+    # 2. Batch fetch all score rows for all submitted assessments
+    scores_res = await db.execute(
+        select(AssessmentScore).where(AssessmentScore.assessment_id.in_(ass_ids))
+    )
+    scores_by_ass: Dict[int, Dict[str, float]] = {}
+    for s in scores_res.scalars().all():
+        if s.assessment_id not in scores_by_ass:
+            scores_by_ass[s.assessment_id] = {}
+        scores_by_ass[s.assessment_id][s.dimension_code] = float(s.raw_score)
+
+    # 3. Batch fetch stage-specific targets
+    clf_by_ass: Dict[int, ClassificationResult] = {}
+    eval_by_ass: Dict[int, ResearchEvaluationRecord] = {}
+
+    if stage == "stage_1":
+        clf_res = await db.execute(
+            select(ClassificationResult).where(
+                ClassificationResult.assessment_id.in_(ass_ids),
+                ClassificationResult.method == "rule_based",
+                ClassificationResult.is_primary == True,
+            )
+        )
+        clf_by_ass = {c.assessment_id: c for c in clf_res.scalars().all()}
+    else:
+        res_rec = await db.execute(
+            select(ResearchEvaluationRecord).where(
+                ResearchEvaluationRecord.assessment_id.in_(ass_ids),
+                ResearchEvaluationRecord.consultant_corrected_level.isnot(None),
+            )
+        )
+        eval_by_ass = {r.assessment_id: r for r in res_rec.scalars().all()}
+
+    # 4. Construct records
     records = []
     for ass, biz in rows:
-        # Fetch score rows
-        scores_res = await db.execute(
-            select(AssessmentScore).where(AssessmentScore.assessment_id == ass.id)
-        )
-        scores_by_dim = {s.dimension_code: float(s.raw_score) for s in scores_res.scalars().all()}
-
+        scores_by_dim = scores_by_ass.get(ass.id, {})
         target_level = None
         ruleset_ver = 1
 
         if stage == "stage_1":
-            # Primary rule-based classification result
-            clf_res = await db.execute(
-                select(ClassificationResult).where(
-                    ClassificationResult.assessment_id == ass.id,
-                    ClassificationResult.method == "rule_based",
-                    ClassificationResult.is_primary == True,
-                )
-            )
-            clf = clf_res.scalars().first()
+            clf = clf_by_ass.get(ass.id)
             if clf:
                 target_level = clf.rbdl_level
                 ruleset_ver = clf.ruleset_version or 1
         else:
-            # Consultant-corrected research record
-            res_rec = await db.execute(
-                select(ResearchEvaluationRecord).where(
-                    ResearchEvaluationRecord.assessment_id == ass.id,
-                    ResearchEvaluationRecord.consultant_corrected_level.isnot(None),
-                )
-            )
-            r_eval = res_rec.scalars().first()
+            r_eval = eval_by_ass.get(ass.id)
             if r_eval:
                 target_level = r_eval.consultant_corrected_level
 

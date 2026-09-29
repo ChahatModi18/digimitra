@@ -5,10 +5,15 @@ import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
-from fastapi import HTTPException, status
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from app.core.exceptions import (
+    AuthorizationException,
+    EntityNotFoundException,
+    ValidationException,
+)
 
 from app.domain.rbdl.classifier import RBDLClassifierEngine, RBDLClassificationResultDTO
 from app.domain.rbdl.dimensions import RBDL_DIMENSIONS, DimensionMetadata
@@ -54,15 +59,9 @@ class AssessmentService:
         )
         business = result.scalar_one_or_none()
         if not business:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Business with ID {business_id} not found.",
-            )
+            raise EntityNotFoundException("Business", business_id)
         if business.owner_user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to access assessments for this business.",
-            )
+            raise AuthorizationException("You do not have permission to access assessments for this business.")
         return business
 
     @classmethod
@@ -84,15 +83,9 @@ class AssessmentService:
         )
         assessment = result.scalar_one_or_none()
         if not assessment:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Assessment with ID {assessment_id} not found.",
-            )
+            raise EntityNotFoundException("Assessment", assessment_id)
         if assessment.business.owner_user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to access this assessment.",
-            )
+            raise AuthorizationException("You do not have permission to access this assessment.")
         return assessment, assessment.business
 
     @classmethod
@@ -256,10 +249,7 @@ class AssessmentService:
         assessment, _ = await cls.verify_assessment_ownership(db, assessment_id, user_id)
 
         if assessment.status != "in_progress":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Cannot modify assessment with status '{assessment.status}'.",
-            )
+            raise ValidationException(f"Cannot modify assessment with status '{assessment.status}'.")
 
         # Update language if provided
         if answers_in.language_used in ("en", "hi"):
@@ -289,9 +279,8 @@ class AssessmentService:
 
         for item in answers_in.answers:
             if item.question_id not in valid_questions:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid question ID {item.question_id} for assessment version {assessment.question_bank_version}.",
+                raise ValidationException(
+                    f"Invalid question ID {item.question_id} for assessment version {assessment.question_bank_version}."
                 )
 
             question = valid_questions[item.question_id]
@@ -313,9 +302,8 @@ class AssessmentService:
                 # Validate options belong to question
                 for oid in opt_ids:
                     if oid not in valid_options or valid_options[oid].question_id != question.id:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Option ID {oid} does not belong to Question ID {question.id}.",
+                        raise ValidationException(
+                            f"Option ID {oid} does not belong to Question ID {question.id}."
                         )
 
                 text_ans_val = json.dumps(opt_ids)
@@ -324,9 +312,8 @@ class AssessmentService:
                 # Single choice / boolean / numeric
                 if item.selected_option_id is not None:
                     if item.selected_option_id not in valid_options or valid_options[item.selected_option_id].question_id != question.id:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Option ID {item.selected_option_id} does not belong to Question ID {question.id}.",
+                        raise ValidationException(
+                            f"Option ID {item.selected_option_id} does not belong to Question ID {question.id}."
                         )
                     selected_opt_id = item.selected_option_id
 
@@ -416,6 +403,19 @@ class AssessmentService:
         answers = ans_res.scalars().all()
         answers_by_qid = {a.question_id: a for a in answers}
         answers_by_code = {a.question.question_code: a for a in answers if a.question}
+
+        # Safeguard P12: Require at least one answered question before permitting submission
+        answered_count = sum(
+            1 for a in answers
+            if a.selected_option_id is not None
+            or a.numeric_answer is not None
+            or (a.text_answer and a.text_answer.strip())
+        )
+        if answered_count == 0:
+            raise ValidationException(
+                "Cannot submit an assessment with zero answered questions. "
+                "At least one question must be answered before submission."
+            )
 
         # 3. Calculate Dimension Scores & Composite Score
         scoring_summary = ScoringEngine.calculate_scores(
@@ -547,18 +547,25 @@ class AssessmentService:
         assessment.status = "submitted"
         assessment.submitted_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
-        await db.commit()
+        # Stage assessment status and classification records without premature commit
+        await db.flush()
         await db.refresh(cr_record)
 
-        # 9. Auto-generate Recommendations & Phased Roadmap (Claude C4)
+        # 9. Auto-generate Recommendations & Phased Roadmap (Claude C4) within atomic transaction boundary
         try:
             from app.services.recommendation_service import RecommendationService
             await RecommendationService.generate_recommendations_and_roadmap(
                 db=db,
                 assessment_id=assessment_id,
+                auto_commit=False,
             )
+            # Atomically commit assessment, classification, scores, recommendations, and roadmap
+            await db.commit()
+            await db.refresh(cr_record)
         except Exception as e:
-            logger.warning(f"Auto-generation of recommendations/roadmap encountered: {e}")
+            await db.rollback()
+            logger.error(f"Assessment submission transaction rolled back due to error: {e}")
+            raise
 
         logger.info(
             f"Successfully classified Assessment ID {assessment_id} -> RBDL Level {cr_record.rbdl_level} (Certainty: {classification_dto.certainty.certainty_tier.value})"
@@ -655,9 +662,9 @@ class AssessmentService:
         )
         cr = cr_res.scalar_one_or_none()
         if not cr:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No classification result found for assessment ID {assessment_id}. Assessment may not have been submitted yet.",
+            raise EntityNotFoundException(
+                "ClassificationResult for assessment",
+                f"{assessment_id}. Assessment may not have been submitted yet.",
             )
 
         # Load scores
@@ -830,10 +837,7 @@ class AssessmentService:
             )
             curr_assessment = curr_res.scalar_one_or_none()
             if not curr_assessment:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Submitted assessment ID {current_assessment_id} not found for this business.",
-                )
+                raise EntityNotFoundException("Submitted assessment", current_assessment_id)
         else:
             # Pick latest submitted assessment
             curr_res = await db.execute(
@@ -852,10 +856,7 @@ class AssessmentService:
             )
             curr_assessment = curr_res.scalar_one_or_none()
             if not curr_assessment:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="No completed assessments found for this business to compare.",
-                )
+                raise ValidationException("No completed assessments found for this business to compare.")
 
         if previous_assessment_id:
             prev_res = await db.execute(
@@ -874,10 +875,7 @@ class AssessmentService:
             )
             prev_assessment = prev_res.scalar_one_or_none()
             if not prev_assessment:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Previous submitted assessment ID {previous_assessment_id} not found for this business.",
-                )
+                raise EntityNotFoundException("Previous submitted assessment", previous_assessment_id)
         else:
             # Check previous_assessment_id link or previous chronological assessment
             prior_id = curr_assessment.previous_assessment_id
@@ -919,16 +917,10 @@ class AssessmentService:
                 prev_assessment = prev_res.scalar_one_or_none()
 
         if not prev_assessment:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="At least two completed assessments are required to generate a comparison.",
-            )
+            raise ValidationException("At least two completed assessments are required to generate a comparison.")
 
         if prev_assessment.id == curr_assessment.id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot compare an assessment with itself. Please select two distinct assessments.",
-            )
+            raise ValidationException("Cannot compare an assessment with itself. Please select two distinct assessments.")
 
         # 2. Extract classification details
         curr_cr = next(

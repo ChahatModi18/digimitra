@@ -75,6 +75,7 @@ class RecommendationService:
         db: AsyncSession,
         assessment_id: int,
         user_id: Optional[int] = None,
+        auto_commit: bool = False,
     ) -> RoadmapRead:
         """Generate ranked recommendations and a phased roadmap for a submitted assessment."""
         # 1. Load Assessment and Primary Classification Result
@@ -318,8 +319,11 @@ class RecommendationService:
             )
             db.add(db_task)
 
-        await db.commit()
+        await db.flush()
         await db.refresh(new_roadmap)
+        if auto_commit:
+            await db.commit()
+            await db.refresh(new_roadmap)
 
         logger.info(
             f"Generated Roadmap ID {new_roadmap.id} (v{new_version}) for Business ID {business.id} with {len(phased_result.all_tasks)} tasks."
