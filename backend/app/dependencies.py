@@ -33,10 +33,10 @@ def get_pagination(
 async def get_current_user(
     token: Optional[str] = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
-) -> Optional[User]:
-    """Dependency to extract optional authenticated user from JWT token."""
+) -> User:
+    """Dependency that extracts and validates the authenticated user from JWT token."""
     if not token:
-        return None
+        raise AuthenticationException("Authentication required. Please provide a valid Bearer token.")
     try:
         payload = decode_token(token)
         user_id_str = payload.get("sub")
@@ -47,17 +47,38 @@ async def get_current_user(
         if not user or not user.is_active:
             raise AuthenticationException("User not found or inactive.")
         return user
+    except (AuthenticationException, AuthorizationException):
+        raise
     except Exception as exc:
         raise AuthenticationException(f"Could not validate credentials: {exc}")
 
 
+async def get_optional_current_user(
+    token: Optional[str] = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """Dependency to extract optional authenticated user from JWT token if provided."""
+    if not token:
+        return None
+    try:
+        payload = decode_token(token)
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            return None
+        user = await db.get(User, int(user_id_str))
+        if not user or not user.is_active:
+            return None
+        return user
+    except Exception:
+        return None
+
+
 async def get_authenticated_user(
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ) -> User:
-    """Dependency that strictly requires an authenticated user."""
-    if not current_user:
-        raise AuthenticationException("Authentication required. Please provide a valid Bearer token.")
+    """Dependency that strictly requires an authenticated user (alias to get_current_user)."""
     return current_user
+
 
 
 def require_roles(allowed_roles: List[UserRole]):
