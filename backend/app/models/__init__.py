@@ -13,7 +13,21 @@ from app.models.classification_result import ClassificationResult, Classificatio
 from app.models.roadmap import Roadmap, RoadmapTask, RoadmapItem
 from app.models.progress_log import ProgressLog
 from app.models.ml import MLModel, MLPrediction
-from app.models.research import ResearchEvaluationRecord
+from app.models.research import (
+    ResearchEvaluationRecord,
+    ResearchStudy,
+    ResearchParticipant,
+    ConsultantProfile,
+    BlindedEvaluationPacket,
+    ConsultantEvaluation,
+    TestRetestLinkage,
+    RecommendationAblationEvaluation,
+    CognitiveInterviewRecord,
+    ComprehensionStudyRecord,
+    ResearchExperiment,
+    ResearchDatasetSnapshot,
+    ReproducibilityManifestRecord,
+)
 from app.models.consultant_label import ConsultantBlindLabel
 from app.models.requirement_profile import RequirementProfile
 from app.models.audit_log import AuditLog
@@ -43,8 +57,21 @@ __all__ = [
     "MLModel",
     "MLPrediction",
     "ResearchEvaluationRecord",
+    "ResearchStudy",
+    "ResearchParticipant",
+    "ConsultantProfile",
+    "BlindedEvaluationPacket",
+    "ConsultantEvaluation",
+    "TestRetestLinkage",
+    "RecommendationAblationEvaluation",
+    "CognitiveInterviewRecord",
+    "ComprehensionStudyRecord",
+    "ResearchExperiment",
+    "ResearchDatasetSnapshot",
+    "ReproducibilityManifestRecord",
     "ConsultantBlindLabel",
     "RequirementProfile",
     "AuditLog",
 ]
+
 
