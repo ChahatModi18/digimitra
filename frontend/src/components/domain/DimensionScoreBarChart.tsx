@@ -38,9 +38,10 @@ export const DimensionScoreBarChart: React.FC<DimensionScoreBarChartProps> = ({
       {Object.entries(scores).map(([code, score]) => {
         const meta = dimensionMeta[code] || { en: code, hi: code, icon: "📊" };
         const threshold = thresholds[code] || 4.0;
-        const isSatisfied = score >= threshold;
+        const numScore = typeof score === "number" && !isNaN(score) ? score : 0;
+        const isSatisfied = numScore >= threshold;
         const name = currentLang === "hi" ? meta.hi : meta.en;
-        const widthPercent = Math.min(Math.max((score / 10) * 100, 4), 100);
+        const widthPercent = Math.min(Math.max((numScore / 10) * 100, 4), 100);
 
         return (
           <div key={code} className="space-y-1.5">
@@ -54,7 +55,7 @@ export const DimensionScoreBarChart: React.FC<DimensionScoreBarChartProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-[#241C15]">
-                  {score.toFixed(1)} / 10
+                  {numScore.toFixed(1)} / 10
                 </span>
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${

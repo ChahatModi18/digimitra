@@ -9,6 +9,10 @@ import {
   Compass,
   User,
   History,
+  HelpCircle,
+  ExternalLink,
+  PhoneCall,
+  ShieldCheck,
 } from "lucide-react";
 import { LanguageSwitcher } from "../LanguageSwitcher";
 import { ThemeSwitcher } from "../ThemeSwitcher";
@@ -39,6 +43,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     { path: "/recommendations", label: t("navigation.recommendations"), icon: Sparkles },
     { path: "/roadmap", label: t("navigation.roadmap"), icon: Compass },
     { path: "/history", label: t("navigation.history"), icon: History },
+    { path: "/contact", label: "Help & FAQs", icon: HelpCircle },
   ];
 
   return (
@@ -100,8 +105,22 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
           })}
         </nav>
 
-        {/* Bottom Panel: Enterprise Switcher, Theme Switcher, Language & Account */}
+        {/* Bottom Panel: Support link, Enterprise Switcher, Theme Switcher, Language & Account */}
         <div className="p-4 border-t border-[#EDE2D8] bg-stone-50/60 space-y-3">
+          {/* Quick Help & FAQs Link */}
+          <Link
+            to="/contact"
+            className="flex items-center justify-between p-2.5 rounded-xl bg-orange-50 hover:bg-orange-100/80 border border-orange-200/80 text-xs font-bold text-[#F0592A] transition"
+          >
+            <div className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 shrink-0" />
+              <span>Support & FAQs</span>
+            </div>
+            <span className="text-[9px] bg-[#F0592A] text-white px-1.5 py-0.5 rounded-md font-bold">
+              24x7
+            </span>
+          </Link>
+
           {businesses.length > 0 && (
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-[#9C8F84] tracking-wider block">
@@ -163,6 +182,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
             <ThemeSwitcher compact={true} />
             <LanguageSwitcher />
             <Link
+              to="/contact"
+              className="p-1.5 rounded-lg text-[#F0592A] hover:bg-orange-50"
+              title="Help & FAQs"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </Link>
+            <Link
               to="/auth"
               className="p-2 rounded-lg font-semibold text-xs flex items-center gap-1"
               style={{
@@ -176,13 +202,128 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
         </header>
 
         {/* Content View */}
-        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12">
-          {children}
+        <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-12 flex flex-col justify-between">
+          <div className="flex-1">
+            {children}
+          </div>
+
+          {/* Responsive MSME Footer */}
+          <footer className="mt-16 pt-8 border-t border-[#EDE2D8] text-xs text-[#6B5D52] space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Col 1: Brand & Purpose */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 font-bold text-[#241C15] text-sm">
+                  <Sparkles className="w-4 h-4 text-[#F0592A]" />
+                  <span>DigiMitra MSME Consultant</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-[#9C8F84]">
+                  Research-backed digital maturity diagnostic, 9-dimension scoring, and deterministic phased roadmaps for Indian micro & small enterprises.
+                </p>
+                <div className="flex items-center gap-1.5 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200 w-fit">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Zero Commercial Vendor Bias</span>
+                </div>
+              </div>
+
+              {/* Col 2: Core Platform Links */}
+              <div className="space-y-1.5">
+                <span className="font-extrabold text-[#241C15] uppercase tracking-wider text-[10px] block">
+                  Application Views
+                </span>
+                <ul className="space-y-1 text-[11px]">
+                  <li>
+                    <Link to="/" className="hover:text-[#F0592A] transition">Home Dashboard</Link>
+                  </li>
+                  <li>
+                    <Link to="/assessment" className="hover:text-[#F0592A] transition">9-Dimension Digital Assessment</Link>
+                  </li>
+                  <li>
+                    <Link to="/recommendations" className="hover:text-[#F0592A] transition">Prioritized Tool Recommendations</Link>
+                  </li>
+                  <li>
+                    <Link to="/roadmap" className="hover:text-[#F0592A] transition">3-Phase Action Roadmap</Link>
+                  </li>
+                  <li>
+                    <Link to="/history" className="hover:text-[#F0592A] transition">Audit Log & Version History</Link>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Col 3: Support, Help & FAQs */}
+              <div className="space-y-1.5">
+                <span className="font-extrabold text-[#241C15] uppercase tracking-wider text-[10px] block">
+                  Support & Helpdesk
+                </span>
+                <ul className="space-y-1 text-[11px]">
+                  <li>
+                    <Link to="/contact" className="text-[#F0592A] font-bold hover:underline flex items-center gap-1">
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>Helpdesk, Contact & FAQs (/contact)</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/contact" className="hover:text-[#F0592A] transition">Submit Support Ticket</Link>
+                  </li>
+                  <li className="flex items-center gap-1 text-[#241C15] font-semibold pt-1">
+                    <PhoneCall className="w-3.5 h-3.5 text-[#F0592A]" />
+                    <span>Toll-Free: 1800-180-6763</span>
+                  </li>
+                  <li className="text-[10px] text-[#9C8F84]">
+                    Government MSME Champion Helpdesk (Mon-Sat, 9AM-6PM)
+                  </li>
+                </ul>
+              </div>
+
+              {/* Col 4: Verified Government Initiatives */}
+              <div className="space-y-1.5">
+                <span className="font-extrabold text-[#241C15] uppercase tracking-wider text-[10px] block">
+                  Verified Government Portals
+                </span>
+                <ul className="space-y-1 text-[11px]">
+                  <li>
+                    <a href="https://udyamregistration.gov.in" target="_blank" rel="noopener noreferrer" className="hover:text-[#F0592A] flex items-center gap-1">
+                      <span>Udyam Registration Portal</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://zed.msme.gov.in" target="_blank" rel="noopener noreferrer" className="hover:text-[#F0592A] flex items-center gap-1">
+                      <span>MSME ZED Certification</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://gem.gov.in" target="_blank" rel="noopener noreferrer" className="hover:text-[#F0592A] flex items-center gap-1">
+                      <span>Government e-Marketplace (GeM)</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://ondc.org" target="_blank" rel="noopener noreferrer" className="hover:text-[#F0592A] flex items-center gap-1">
+                      <span>ONDC Open Network</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-[#EDE2D8] flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#9C8F84]">
+              <span>DigiMitra Platform © 2026. Empowering Indian MSMEs through Transparent Digital Transformation.</span>
+              <div className="flex items-center gap-3">
+                <Link to="/contact" className="hover:text-[#F0592A]">Help & Support</Link>
+                <span>•</span>
+                <Link to="/roadmap" className="hover:text-[#F0592A]">Government Schemes</Link>
+                <span>•</span>
+                <Link to="/contact" className="hover:text-[#F0592A]">FAQs</Link>
+              </div>
+            </div>
+          </footer>
         </main>
 
-        {/* 3. Mobile Bottom Navigation (Section 5.5: Fixed bottom 64px) */}
+        {/* 3. Mobile Bottom Navigation (Fixed bottom 64px) */}
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-white border-t border-[#EDE2D8] flex items-center justify-around px-2 shadow-lg">
-          {navItems.map((item) => {
+          {navItems.slice(0, 5).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
@@ -207,3 +348,4 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     </div>
   );
 };
+

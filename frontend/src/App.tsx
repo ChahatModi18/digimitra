@@ -12,6 +12,8 @@ import { RecommendationsView } from "./pages/RecommendationsView";
 import { RoadmapView } from "./pages/RoadmapView";
 import { HistoryView } from "./pages/HistoryView";
 import { ExploreView } from "./pages/ExploreView";
+import { ContactView } from "./pages/ContactView";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,35 +32,41 @@ export const App: React.FC = () => {
           <BrowserRouter>
             <AppShell>
               <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                <Routes>
-                  {/* 1. Landing Page */}
-                  <Route path="/" element={<Dashboard />} />
+                <ErrorBoundary>
+                  <Routes>
+                    {/* 1. Landing Page */}
+                    <Route path="/" element={<Dashboard />} />
 
-                  {/* 2. User Registration & Login */}
-                  <Route path="/auth" element={<AuthPage />} />
+                    {/* 2. User Registration & Login */}
+                    <Route path="/auth" element={<AuthPage />} />
 
-                  {/* 3. Business Profile Setup & Management */}
-                  <Route path="/businesses" element={<BusinessRegistration />} />
-                  <Route path="/register" element={<Navigate to="/businesses" replace />} />
+                    {/* 3. Business Profile Setup & Management */}
+                    <Route path="/businesses" element={<BusinessRegistration />} />
+                    <Route path="/register" element={<Navigate to="/businesses" replace />} />
 
-                  {/* 4-7. Assessment Flow (Intro, Questionnaire, Result, Explanation) */}
-                  <Route path="/assessment" element={<AssessmentFlow />} />
+                    {/* 4-7. Assessment Flow (Intro, Questionnaire, Result, Explanation) */}
+                    <Route path="/assessment" element={<AssessmentFlow />} />
 
-                  {/* 8. Personalized Recommendations */}
-                  <Route path="/recommendations" element={<RecommendationsView />} />
+                    {/* 8. Personalized Recommendations */}
+                    <Route path="/recommendations" element={<RecommendationsView />} />
 
-                  {/* 9-10. Phased Roadmap Dashboard & Task Progress */}
-                  <Route path="/roadmap" element={<RoadmapView />} />
+                    {/* 9-10. Phased Roadmap Dashboard & Task Progress */}
+                    <Route path="/roadmap" element={<RoadmapView />} />
 
-                  {/* 11. Assessment & Roadmap Version History */}
-                  <Route path="/history" element={<HistoryView />} />
+                    {/* 11. Assessment & Roadmap Version History */}
+                    <Route path="/history" element={<HistoryView />} />
 
-                  {/* 12. Localized Service & Resource Discovery (A8) */}
-                  <Route path="/explore" element={<ExploreView />} />
+                    {/* 12. Localized Service & Resource Discovery (A8) */}
+                    <Route path="/explore" element={<ExploreView />} />
 
-                  {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                    {/* 13. Helpdesk, FAQs & Contact Reachout */}
+                    <Route path="/contact" element={<ContactView />} />
+                    <Route path="/help" element={<Navigate to="/contact" replace />} />
+
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </ErrorBoundary>
               </div>
             </AppShell>
           </BrowserRouter>

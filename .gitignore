@@ -71,5 +71,10 @@ desktop.ini
 backend/app.db
 backend/test.db
 
+# Test dumps and debug files
+test_*.txt
+*_debug.png
+
 # Docker
 .dockerignore
+

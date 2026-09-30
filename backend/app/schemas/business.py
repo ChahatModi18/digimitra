@@ -70,3 +70,21 @@ class BusinessRead(BusinessBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CategoryRead(BaseModel):
+    id: int
+    code: Optional[str] = None
+    sector_code: Optional[str] = None
+    category_code: Optional[str] = None
+    subcategory_code: Optional[str] = None
+    name_en: str
+    name_hi: str
+    description_en: Optional[str] = None
+    description_hi: Optional[str] = None
+    typical_needs: Optional[list[str]] = Field(default=None, alias="typical_needs_json")
+    typical_tools: Optional[list[str]] = Field(default=None, alias="typical_tools_json")
+    typical_digitalization_paths: Optional[list[str]] = Field(default=None, alias="typical_digitalization_paths_json")
+    is_active: bool = True
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)

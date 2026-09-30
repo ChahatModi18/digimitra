@@ -1,7 +1,7 @@
 """Business Category ORM Model (C2 Entity 2.3)."""
 
 from typing import Optional, List, TYPE_CHECKING
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
@@ -20,6 +20,13 @@ class BusinessCategory(Base, TimestampMixin):
     )
     name_en: Mapped[str] = mapped_column(String(100), nullable=False)
     name_hi: Mapped[str] = mapped_column(String(100), nullable=False)
+    code: Mapped[Optional[str]] = mapped_column(String(50), unique=True, index=True, nullable=True)
+    sector_code: Mapped[Optional[str]] = mapped_column(String(50), index=True, nullable=True)
+    category_code: Mapped[Optional[str]] = mapped_column(String(50), index=True, nullable=True)
+    subcategory_code: Mapped[Optional[str]] = mapped_column(String(50), index=True, nullable=True)
+    typical_needs_json: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    typical_tools_json: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
+    typical_digitalization_paths_json: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
     description_en: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     description_hi: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

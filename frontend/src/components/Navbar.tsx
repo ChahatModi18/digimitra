@@ -12,15 +12,20 @@ import {
   Search,
   Menu,
   X,
+  HelpCircle,
+  Share2,
 } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useAuth } from "../context/AuthContext";
+import { ShareModal } from "./ui/ShareModal";
 
 export const Navbar: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const { user } = useAuth();
+  const currentLang = (i18n?.language?.startsWith("hi") ? "hi" : "en") as "en" | "hi";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const navItems = [
     { path: "/", label: t("navigation.dashboard"), icon: LayoutDashboard },
@@ -30,6 +35,11 @@ export const Navbar: React.FC = () => {
     { path: "/roadmap", label: t("navigation.roadmap"), icon: Compass },
     { path: "/history", label: t("navigation.history"), icon: History },
     { path: "/explore", label: t("navigation.explore"), icon: Search },
+    {
+      path: "/contact",
+      label: currentLang === "hi" ? "संपर्क व प्रश्न" : "Contact & FAQs",
+      icon: HelpCircle,
+    },
   ];
 
   return (
@@ -75,6 +85,19 @@ export const Navbar: React.FC = () => {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Share Button */}
+          <button
+            onClick={() => setIsShareOpen(true)}
+            title={currentLang === "hi" ? "डिजीमित्र साझा करें" : "Share DigiMitra"}
+            aria-label="Share DigiMitra"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-100 border border-stone-200 transition shadow-2xs"
+          >
+            <Share2 className="h-3.5 w-3.5 text-orange-600" />
+            <span className="hidden md:inline">
+              {currentLang === "hi" ? "साझा करें" : "Share"}
+            </span>
+          </button>
+
           <LanguageSwitcher />
 
           {/* User Account / Login Button */}
@@ -126,6 +149,16 @@ export const Navbar: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* Universal Share Modal */}
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        title="DigiMitra MSME Digital Consultant"
+        description="Free diagnostic assessment, 9-dimension maturity classification, and customized roadmaps for Indian local businesses."
+        shareUrl={window?.location?.origin || "http://localhost:5173"}
+        currentLang={currentLang}
+      />
     </header>
   );
 };

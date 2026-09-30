@@ -1,17 +1,18 @@
-"""Business Profile Management Endpoints."""
-
-from typing import List
-from fastapi import APIRouter, Depends, status
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import AuthorizationException, EntityNotFoundException
 from app.core.security import UserRole
 from app.db.session import get_db
 from app.dependencies import get_authenticated_user
 from app.models.business import Business
+from app.models.business_category import BusinessCategory
 from app.models.user import User
 from app.repositories.business_repository import BusinessRepository
-from app.schemas.business import BusinessCreate, BusinessRead, BusinessUpdate
+from app.schemas.business import BusinessCreate, BusinessRead, BusinessUpdate, CategoryRead
 from app.schemas.common import APIResponse
+from app.domain.taxonomy.categories import SECTORS, TAXONOMY_CATALOG, get_all_sectors
 
 router = APIRouter(prefix="/businesses", tags=["Businesses"])
 
@@ -56,6 +57,51 @@ async def create_business(
         success=True,
         message="Business registered successfully.",
         data=BusinessRead.model_validate(created),
+    )
+
+
+@router.get("/categories/taxonomy", response_model=APIResponse[Dict[str, Any]])
+async def get_taxonomy():
+    """Retrieve full hierarchical MSME business sectors, categories, and digitalization pathways."""
+    sectors = get_all_sectors()
+    nodes = [
+        {
+            "sector_code": n.sector_code,
+            "category_code": n.category_code,
+            "subcategory_code": n.subcategory_code,
+            "display_name_en": n.display_name_en,
+            "display_name_hi": n.display_name_hi,
+            "description_en": n.description_en,
+            "description_hi": n.description_hi,
+            "typical_needs": n.typical_needs,
+            "typical_tools": n.typical_tools,
+            "typical_digitalization_paths": n.typical_digitalization_paths,
+        }
+        for n in TAXONOMY_CATALOG
+    ]
+    return APIResponse(
+        success=True,
+        data={
+            "sectors": sectors,
+            "taxonomy": nodes,
+        },
+    )
+
+
+@router.get("/categories", response_model=APIResponse[List[CategoryRead]])
+async def list_business_categories(
+    sector_code: Optional[str] = Query(None, description="Optional sector filter"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve list of active business categories from database."""
+    stmt = select(BusinessCategory).where(BusinessCategory.is_active == True)
+    if sector_code:
+        stmt = stmt.where(BusinessCategory.sector_code == sector_code)
+    stmt = stmt.order_by(BusinessCategory.id.asc())
+    categories = (await db.execute(stmt)).scalars().all()
+    return APIResponse(
+        success=True,
+        data=[CategoryRead.model_validate(c) for c in categories],
     )
 
 

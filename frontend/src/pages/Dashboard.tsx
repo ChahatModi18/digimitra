@@ -13,10 +13,14 @@ import {
   ChevronRight,
   Calculator,
   Palette,
+  Share2,
 } from "lucide-react";
 import { Badge } from "../components/ui/Badge";
 import { LevelCard } from "../components/domain/LevelCard";
 import { DimensionCard } from "../components/domain/DimensionCard";
+import { DimensionFlashcardModal } from "../components/domain/DimensionFlashcardModal";
+import { FeatureGuideModal, FeatureGuideType } from "../components/domain/FeatureGuideModal";
+import { ShareModal } from "../components/ui/ShareModal";
 import { Section } from "../components/layout/Section";
 import { HealthCard } from "../components/HealthCard";
 import { MsmeClassificationCalculator } from "../components/domain/MsmeClassificationCalculator";
@@ -30,6 +34,10 @@ export const Dashboard: React.FC = () => {
   const currentLang = (i18n?.language?.startsWith("hi") ? "hi" : "en") as "en" | "hi";
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showCalculatorSection, setShowCalculatorSection] = useState(false);
+  const [selectedDimensionModalCode, setSelectedDimensionModalCode] = useState<string | null>(null);
+  const [selectedFeatureGuide, setSelectedFeatureGuide] = useState<FeatureGuideType | null>(null);
+  const [isDimensionModalOpen, setIsDimensionModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { theme, themeId, setThemeId, availableThemes } = useTheme();
 
   const rbdlLevels = [
@@ -252,34 +260,57 @@ export const Dashboard: React.FC = () => {
           {/* 3 Main Action Cards (Direct Product Category Style) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-4 text-left">
             {/* Card 1: Assessment */}
-            <Link
-              to="/assessment"
-              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+            <div
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate("/assessment")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") navigate("/assessment");
+              }}
+              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group border border-stone-200/80 hover:border-orange-300 cursor-pointer block"
             >
               <div>
-                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15]">
-                  DIGITAL ASSESSMENT
+                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15] group-hover:text-orange-600 transition-colors">
+                  {currentLang === "hi" ? "डिजिटल मूल्यांकन" : "DIGITAL ASSESSMENT"}
                 </h3>
                 <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
-                  14 QUESTIONS • 3 MINUTES
+                  {currentLang === "hi" ? "14 प्रश्न • 3 मिनट" : "14 QUESTIONS • 3 MINUTES"}
                 </p>
-                <div
-                  className="mt-2 inline-block px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase"
-                  style={{
-                    backgroundColor: theme.primaryLightHex,
-                    color: theme.primaryHex,
-                  }}
-                >
-                  100% FREE FOR MSMES
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase"
+                    style={{
+                      backgroundColor: theme.primaryLightHex,
+                      color: theme.primaryHex,
+                    }}
+                  >
+                    {currentLang === "hi" ? "100% निःशुल्क मूल्यांकन" : "100% FREE FOR MSMES"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFeatureGuide("diagnostic");
+                    }}
+                    className="text-[11px] font-bold text-orange-700 hover:text-orange-950 underline px-1 py-0.5 rounded hover:bg-orange-50 transition"
+                    title="Click to view Diagnostic Assessment Guide"
+                  >
+                    {currentLang === "hi" ? "गाइड ℹ" : "Guide ℹ"}
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-end justify-between pt-2">
-                <div
-                  className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: theme.primaryHex }}
-                >
-                  <ArrowRight className="w-5 h-5" />
+                <div className="flex items-center gap-2 group/btn">
+                  <div
+                    className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover/btn:scale-110 transition-transform"
+                    style={{ backgroundColor: theme.primaryHex }}
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-stone-500 group-hover/btn:text-orange-600 transition-colors hidden xl:inline">
+                    {currentLang === "hi" ? "शुरू करें" : "Start Now"}
+                  </span>
                 </div>
                 <div
                   className="p-2.5 rounded-2xl"
@@ -291,67 +322,107 @@ export const Dashboard: React.FC = () => {
                   <Smartphone className="w-8 h-8" />
                 </div>
               </div>
-            </Link>
+            </div>
 
             {/* Card 2: Roadmap */}
-            <Link
-              to="/roadmap"
-              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+            <div
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate("/roadmap")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") navigate("/roadmap");
+              }}
+              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group border border-stone-200/80 hover:border-teal-400 cursor-pointer block"
             >
               <div>
-                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15]">
-                  TRANSFORMATION ROADMAP
+                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15] group-hover:text-teal-700 transition-colors">
+                  {currentLang === "hi" ? "रूपांतरण रोडमैप" : "TRANSFORMATION ROADMAP"}
                 </h3>
                 <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
-                  PHASED MILESTONES • QUICK WINS
+                  {currentLang === "hi" ? "चरणबद्ध मील के पत्थर • त्वरित लाभ" : "PHASED MILESTONES • QUICK WINS"}
                 </p>
-                <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-[#DCF2EE] text-[#1B7A6E] text-[11px] font-extrabold uppercase">
-                  PROGRESS TRACKING
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#DCF2EE] text-[#1B7A6E] text-[11px] font-extrabold uppercase">
+                    {currentLang === "hi" ? "प्रगति ट्रैकिंग" : "PROGRESS TRACKING"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFeatureGuide("roadmap");
+                    }}
+                    className="text-[11px] font-bold text-teal-800 hover:text-teal-950 underline px-1 py-0.5 rounded hover:bg-teal-50 transition"
+                    title="Click to view Roadmap Philosophy & Guide"
+                  >
+                    {currentLang === "hi" ? "फ्लैशकार्ड गाइड ℹ" : "Guide ℹ"}
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-end justify-between pt-2">
-                <div
-                  className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: theme.primaryHex }}
-                >
-                  <ArrowRight className="w-5 h-5" />
+                <div className="flex items-center gap-2 group/btn">
+                  <div className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md bg-teal-600 group-hover/btn:scale-110 transition-transform">
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-stone-500 group-hover/btn:text-teal-700 transition-colors hidden xl:inline">
+                    {currentLang === "hi" ? "रोडमैप देखें" : "View Roadmap"}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-2xl bg-[#DCF2EE] text-[#1B7A6E]">
                   <Compass className="w-8 h-8" />
                 </div>
               </div>
-            </Link>
+            </div>
 
             {/* Card 3: Recommendations */}
-            <Link
-              to="/recommendations"
-              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group"
+            <div
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate("/recommendations")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") navigate("/recommendations");
+              }}
+              className="p-6 rounded-3xl bg-white text-[#241C15] shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 group border border-stone-200/80 hover:border-amber-400 cursor-pointer block"
             >
               <div>
-                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15]">
-                  RECOMMENDATIONS
+                <h3 className="text-xl font-black font-heading uppercase tracking-tight text-[#241C15] group-hover:text-amber-700 transition-colors">
+                  {currentLang === "hi" ? "डिजिटल सिफारिशें" : "RECOMMENDATIONS"}
                 </h3>
                 <p className="text-xs text-[#6B5D52] font-semibold mt-0.5">
-                  DETERMINISTIC & EXPLAINABLE
+                  {currentLang === "hi" ? "पारदर्शी व कारण सहित • 80/20 नियम" : "DETERMINISTIC & EXPLAINABLE"}
                 </p>
-                <div className="mt-2 inline-block px-2.5 py-0.5 rounded-md bg-[#FBF1DD] text-[#C88A1D] text-[11px] font-extrabold uppercase">
-                  TAILORED TOOLS
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[#FBF1DD] text-[#C88A1D] text-[11px] font-extrabold uppercase">
+                    {currentLang === "hi" ? "अनुकूलित टूल्स" : "TAILORED TOOLS"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFeatureGuide("recommendations");
+                    }}
+                    className="text-[11px] font-bold text-amber-900 hover:text-amber-950 underline px-1 py-0.5 rounded hover:bg-amber-50 transition"
+                    title="Click to view Recommendations Methodology Guide"
+                  >
+                    {currentLang === "hi" ? "फ्लैशकार्ड गाइड ℹ" : "Guide ℹ"}
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-end justify-between pt-2">
-                <div
-                  className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: theme.primaryHex }}
-                >
-                  <ArrowRight className="w-5 h-5" />
+                <div className="flex items-center gap-2 group/btn">
+                  <div className="w-10 h-10 rounded-full text-white flex items-center justify-center shadow-md bg-amber-600 group-hover/btn:scale-110 transition-transform">
+                    <ArrowRight className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-bold text-stone-500 group-hover/btn:text-amber-700 transition-colors hidden xl:inline">
+                    {currentLang === "hi" ? "टूल्स देखें" : "View Tools"}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded-2xl bg-[#FBF1DD] text-[#C88A1D]">
                   <Zap className="w-8 h-8" />
                 </div>
               </div>
-            </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -476,6 +547,10 @@ export const Dashboard: React.FC = () => {
               descriptionEn={dim.descEn}
               descriptionHi={dim.descHi}
               currentLang={currentLang}
+              onClick={() => {
+                setSelectedDimensionModalCode(dim.code);
+                setIsDimensionModalOpen(true);
+              }}
             />
           ))}
         </div>
@@ -595,6 +670,13 @@ export const Dashboard: React.FC = () => {
               {currentLang === "hi" ? "मेरे उद्यम" : "My Businesses"}
             </button>
           </Link>
+          <button
+            onClick={() => setIsShareModalOpen(true)}
+            className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition flex items-center justify-center gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>{currentLang === "hi" ? "साझा करें" : "Share"}</span>
+          </button>
         </div>
       </section>
 
@@ -618,6 +700,32 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 9 Dimensions Interactive Flashcard Modal */}
+      <DimensionFlashcardModal
+        initialDimensionCode={selectedDimensionModalCode}
+        isOpen={isDimensionModalOpen}
+        onClose={() => setIsDimensionModalOpen(false)}
+        currentLang={currentLang}
+      />
+
+      {/* Universal Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title="DigiMitra MSME Digital Consultant"
+        description="Free diagnostic assessment, 9-dimension maturity classification, and customized roadmaps for Indian local businesses."
+        shareUrl={window?.location?.origin || "http://localhost:5173"}
+        currentLang={currentLang}
+      />
+
+      {/* Feature Guide & Inspiring Flashcard Modal */}
+      <FeatureGuideModal
+        type={selectedFeatureGuide}
+        isOpen={!!selectedFeatureGuide}
+        onClose={() => setSelectedFeatureGuide(null)}
+        currentLang={currentLang}
+      />
     </div>
   );
 };

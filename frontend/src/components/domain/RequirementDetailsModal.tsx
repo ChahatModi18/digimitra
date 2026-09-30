@@ -172,7 +172,7 @@ export const RequirementDetailsModal: React.FC<RequirementDetailsModalProps> = (
               >
                 {isHi ? statusInfo.labelHi : statusInfo.labelEn}
               </span>
-              {priorityScore !== undefined && (
+              {typeof priorityScore === "number" && !isNaN(priorityScore) && (
                 <Badge variant="brand" size="sm">
                   Priority: {priorityScore.toFixed(2)}
                 </Badge>

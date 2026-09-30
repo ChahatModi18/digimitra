@@ -40,6 +40,7 @@ import { LevelProgressBar } from "../components/domain/LevelProgressBar";
 import { DimensionScoreBarChart } from "../components/domain/DimensionScoreBarChart";
 import { ResearchDisclosureBanner } from "../components/domain/ResearchDisclosureBanner";
 import { RequirementProfilingSection } from "../components/domain/RequirementProfilingSection";
+import { DimensionFlashcardModal } from "../components/domain/DimensionFlashcardModal";
 import {
   fetchRequirementTaxonomies,
   saveRequirementProfile,
@@ -57,6 +58,8 @@ export const AssessmentFlow: React.FC = () => {
 
   const [currentAssessmentId, setCurrentAssessmentId] = useState<number | null>(null);
   const [answersState, setAnswersState] = useState<Record<number, AnswerSubmissionItem>>({});
+  const [selectedDimFlashcardCode, setSelectedDimFlashcardCode] = useState<string | null>(null);
+  const [isDimFlashcardOpen, setIsDimFlashcardOpen] = useState(false);
   const [requirementProfileState, setRequirementProfileState] = useState<Partial<BusinessRequirementProfile>>({
     business_goal: "G1_CUSTOMER_REACH",
     primary_pain_point: "P1_FIND_CONTACT",
@@ -216,8 +219,12 @@ export const AssessmentFlow: React.FC = () => {
   });
 
   const handleStart = () => {
-    if (activeBusinessId) {
-      startMutation.mutate(activeBusinessId);
+    const targetBizId = activeBusinessId || (businesses.length > 0 ? businesses[0].id : null);
+    if (targetBizId) {
+      if (!activeBusinessId) {
+        setActiveBusinessId(targetBizId);
+      }
+      startMutation.mutate(targetBizId);
     }
   };
 
@@ -367,7 +374,7 @@ export const AssessmentFlow: React.FC = () => {
                 <div className="flex items-center gap-2 max-w-md">
                   <Building2 className="w-5 h-5 text-[#F0592A] shrink-0" />
                   <select
-                    value={activeBusinessId || ""}
+                    value={activeBusinessId || (businesses.length > 0 ? businesses[0].id : "")}
                     onChange={(e) => setActiveBusinessId(Number(e.target.value))}
                     className="w-full bg-white text-[#241C15] text-sm rounded-xl px-4 py-3 border border-[#EDE2D8] focus:outline-none focus:border-[#F0592A] font-bold shadow-xs"
                   >
@@ -393,7 +400,7 @@ export const AssessmentFlow: React.FC = () => {
               size="lg"
               onClick={handleStart}
               isLoading={startMutation.isPending}
-              disabled={!activeBusinessId}
+              disabled={!activeBusinessId && businesses.length === 0}
               rightIcon={<ArrowRight className="w-5 h-5" />}
               className="shadow-md shrink-0"
             >
@@ -402,29 +409,59 @@ export const AssessmentFlow: React.FC = () => {
           </div>
         </Card>
 
-        {/* 9 Dimensions Overview Grid */}
+        {/* 9 Dimensions Overview Grid - Interactive Flashcards */}
         <Section
           title={
             currentLang === "hi"
-              ? "मूल्यांकन में शामिल 9 परिचालन आयाम"
-              : "9 Operational Dimensions Evaluated"
+              ? "मूल्यांकन में शामिल 9 परिचालन आयाम (इंटरएक्टिव फ्लैशकार्ड्स)"
+              : "9 Operational Dimensions Evaluated (Interactive Flashcards)"
           }
-          subtitle="A comprehensive evaluation covering hardware readiness, apps, operations, and digital channels."
+          subtitle={
+            currentLang === "hi"
+              ? "किसी भी आयाम के 12-आयामी मूल्यांकन मानक, मापदंड और अनुशंसित टूल्स देखने के लिए कार्ड पर क्लिक करें।"
+              : "Click any dimension flashcard to inspect its deep-dive evaluation criteria, score weights, and recommended digital tools."
+          }
         >
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             {Object.entries(dimensionNames).map(([code, info], idx) => (
-              <Card key={code} variant="default" className="p-4 flex items-center gap-3.5 hover:border-[#F0592A]/40 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-[#FFE8DE] text-[#F0592A] border border-[#EDE2D8] flex items-center justify-center text-lg font-bold shrink-0">
-                  {info.icon}
+              <Card
+                key={code}
+                variant="interactive"
+                onClick={() => {
+                  setSelectedDimFlashcardCode(code);
+                  setIsDimFlashcardOpen(true);
+                }}
+                className="p-4 flex items-center justify-between gap-3.5 hover:border-[#F0592A] hover:shadow-card transition-all cursor-pointer group bg-white border-[#EDE2D8]"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-[#FFE8DE] text-[#F0592A] border border-[#EDE2D8] flex items-center justify-center text-xl font-bold shrink-0 group-hover:scale-105 transition-transform">
+                    {info.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#241C15] group-hover:text-[#F0592A] transition-colors">
+                      {info[currentLang]}
+                    </h4>
+                    <span className="text-[10px] text-[#9C8F84] uppercase font-mono tracking-wider font-semibold block">
+                      Dim 0{idx + 1} • {code}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#241C15]">{info[currentLang]}</h4>
-                  <span className="text-[10px] text-[#9C8F84] uppercase font-mono tracking-wider font-semibold">Dim 0{idx + 1} • {code}</span>
+                <div className="text-[10px] font-bold text-[#F0592A] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 shrink-0">
+                  <span>View</span>
+                  <ArrowRight className="w-3 h-3" />
                 </div>
               </Card>
             ))}
           </div>
         </Section>
+
+        {/* 9 Dimensions Interactive Flashcard Modal */}
+        <DimensionFlashcardModal
+          initialDimensionCode={selectedDimFlashcardCode || "infra"}
+          isOpen={isDimFlashcardOpen}
+          onClose={() => setIsDimFlashcardOpen(false)}
+          currentLang={currentLang}
+        />
       </div>
     );
   }

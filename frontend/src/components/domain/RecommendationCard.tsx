@@ -112,7 +112,7 @@ export const RecommendationCard: React.FC<RecommendationCardProps> = ({
             </span>
           </div>
 
-          {priorityScore !== undefined && (
+          {typeof priorityScore === "number" && !isNaN(priorityScore) && (
             <Badge variant="brand" size="sm" icon={<Sparkles className="w-3 h-3 mr-1" />}>
               Priority <span className="font-bold ml-0.5">{priorityScore.toFixed(2)}</span>
             </Badge>

@@ -549,8 +549,8 @@ export const HistoryView: React.FC = () => {
                     <div className="text-xs font-bold text-emerald-700 flex items-center gap-1">
                       <ArrowUpRight className="w-3.5 h-3.5" />
                       <span>
-                        Delta: {comparisonData.composite_score_delta >= 0 ? "+" : ""}
-                        {comparisonData.composite_score_delta.toFixed(1)} pts
+                        Delta: {(comparisonData.composite_score_delta ?? 0) >= 0 ? "+" : ""}
+                        {(comparisonData.composite_score_delta ?? 0).toFixed(1)} pts
                       </span>
                     </div>
                   </Card>
@@ -603,8 +603,8 @@ export const HistoryView: React.FC = () => {
                               <td className="p-3.5 font-semibold text-stone-900">
                                 {currentLang === "hi" ? dim.dimension_name_hi : dim.dimension_name_en}
                               </td>
-                              <td className="p-3.5 text-stone-500">{dim.previous_score.toFixed(1)}</td>
-                              <td className="p-3.5 font-bold text-stone-800">{dim.current_score.toFixed(1)}</td>
+                              <td className="p-3.5 text-stone-500">{(dim.previous_score ?? 0).toFixed(1)}</td>
+                              <td className="p-3.5 font-bold text-stone-800">{(dim.current_score ?? 0).toFixed(1)}</td>
                               <td className="p-3.5 font-bold font-mono">
                                 <span
                                   className={
@@ -615,9 +615,9 @@ export const HistoryView: React.FC = () => {
                                       : "text-stone-500"
                                   }
                                 >
-                                  {dim.score_delta > 0 ? "+" : ""}
-                                  {dim.score_delta.toFixed(1)} ({dim.percentage_change > 0 ? "+" : ""}
-                                  {dim.percentage_change.toFixed(0)}%)
+                                  {(dim.score_delta ?? 0) > 0 ? "+" : ""}
+                                  {(dim.score_delta ?? 0).toFixed(1)} ({(dim.percentage_change ?? 0) > 0 ? "+" : ""}
+                                  {(dim.percentage_change ?? 0).toFixed(0)}%)
                                 </span>
                               </td>
                               <td className="p-3.5">

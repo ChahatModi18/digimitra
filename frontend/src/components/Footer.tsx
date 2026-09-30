@@ -49,6 +49,9 @@ export const Footer: React.FC = () => {
             <Link to="/history" className="text-stone-600 hover:text-orange-600 transition">
               {t("navigation.history")}
             </Link>
+            <Link to="/contact" className="text-stone-600 hover:text-orange-600 transition">
+              {currentLang === "hi" ? "संपर्क व अक्सर पूछे प्रश्न" : "Contact & FAQs"}
+            </Link>
             <a
               href="http://localhost:8000/api/v1/docs"
               target="_blank"

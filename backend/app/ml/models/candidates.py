@@ -66,8 +66,44 @@ def create_random_forest(
     )
 
 
+def create_gradient_boosting(
+    n_estimators: int = 100,
+    learning_rate: float = 0.1,
+    max_depth: int = 4,
+    random_state: int = 42,
+    **kwargs: Any,
+):
+    """Creates a Gradient Boosting classifier."""
+    from sklearn.ensemble import GradientBoostingClassifier
+    return GradientBoostingClassifier(
+        n_estimators=n_estimators,
+        learning_rate=learning_rate,
+        max_depth=max_depth,
+        random_state=random_state,
+        **kwargs,
+    )
+
+
+def create_pathway_clustering(
+    n_clusters: int = 4,
+    random_state: int = 42,
+    **kwargs: Any,
+):
+    """Creates a KMeans clustering model for exploratory pathway clustering."""
+    from sklearn.cluster import KMeans
+    return KMeans(
+        n_clusters=n_clusters,
+        random_state=random_state,
+        n_init=10,
+        **kwargs,
+    )
+
+
 MODEL_FACTORIES: Dict[str, Any] = {
     "logistic_regression": create_logistic_regression,
     "decision_tree": create_decision_tree,
     "random_forest": create_random_forest,
+    "gradient_boosting": create_gradient_boosting,
+    "pathway_clustering": create_pathway_clustering,
 }
+

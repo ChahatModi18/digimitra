@@ -16,6 +16,8 @@ from app.api.v1.endpoints.research_diagnostics import router as research_diagnos
 from app.api.v1.endpoints.research_core import router as research_core_router
 from app.api.v1.endpoints.discovery import router as discovery_router
 from app.api.v1.endpoints.requirements import router as requirements_router
+from app.api.v1.endpoints.learning import router as learning_router
+from app.api.v1.endpoints.government import router as government_router
 
 api_v1_router = APIRouter()
 
@@ -39,4 +41,8 @@ api_v1_router.include_router(research_diagnostics_router)
 api_v1_router.include_router(research_core_router)
 api_v1_router.include_router(discovery_router)
 api_v1_router.include_router(requirements_router)
+
+# Register learning flashcards & government initiatives
+api_v1_router.include_router(learning_router)
+api_v1_router.include_router(government_router)
 

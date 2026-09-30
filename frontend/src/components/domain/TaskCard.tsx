@@ -141,7 +141,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {priorityScore !== undefined && (
+            {typeof priorityScore === "number" && !isNaN(priorityScore) && (
               <Badge variant="brand" size="sm" icon={<Sparkles className="w-3 h-3 mr-1" />}>
                 {priorityScore.toFixed(1)}
               </Badge>

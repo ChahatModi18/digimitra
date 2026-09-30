@@ -22,6 +22,7 @@ export interface DimensionCardProps {
   weight?: number;
   currentLang?: string;
   className?: string;
+  onClick?: () => void;
 }
 
 export const DimensionCard: React.FC<DimensionCardProps> = ({
@@ -34,6 +35,7 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
   weight,
   currentLang = "en",
   className = "",
+  onClick,
 }) => {
   const getDimensionIcon = (dimCode: string) => {
     switch (dimCode.toLowerCase()) {
@@ -65,27 +67,47 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
 
   return (
     <div
-      className={`p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between space-y-4 transition-all duration-200 hover:border-orange-300 hover:shadow-card-hover hover:-translate-y-0.5 ${className}`}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      className={`p-5 rounded-2xl bg-white border border-stone-200 shadow-sm flex flex-col justify-between space-y-4 transition-all duration-200 hover:border-orange-400 hover:shadow-card-hover hover:-translate-y-0.5 group ${
+        onClick ? "cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-500/50" : ""
+      } ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-100 shadow-xs">
+        <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-100 shadow-xs group-hover:bg-orange-100/70 transition-colors">
           {getDimensionIcon(code)}
         </div>
-        {weight !== undefined && (
-          <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 border border-stone-200">
-            {weight}x Weight
-          </span>
-        )}
+        <div className="flex items-center gap-1.5">
+          {weight !== undefined && (
+            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 border border-stone-200">
+              {weight}x Weight
+            </span>
+          )}
+          {onClick && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200/80 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+              {currentLang === "hi" ? "फ्लैशकार्ड देखें" : "Flashcard"}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="space-y-1">
-        <h4 className="text-sm sm:text-base font-bold text-stone-900 tracking-tight">{name}</h4>
+        <h4 className="text-sm sm:text-base font-bold text-stone-900 tracking-tight group-hover:text-orange-600 transition-colors">
+          {name}
+        </h4>
         {description && (
           <p className="text-xs text-stone-600 leading-relaxed line-clamp-2">{description}</p>
         )}
       </div>
 
-      {score !== undefined && (
+      {typeof score === "number" && !isNaN(score) && (
         <div className="space-y-1.5 pt-2 border-t border-stone-100">
           <div className="flex justify-between items-center text-xs">
             <span className="text-stone-500 font-medium">Readiness</span>
